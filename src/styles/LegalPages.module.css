@@ -1,0 +1,59 @@
+.legalContainer {
+  padding: 3rem 1rem;
+  max-width: 900px;
+  margin: 0 auto;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  color: #333;
+}
+
+.legalContainer h1 {
+  font-size: 2.5rem;
+  margin-bottom: 1.5rem;
+  text-align: center;
+  color: #0d6efd; /* Bootstrap primary color */
+}
+
+.legalContainer h2 {
+  font-size: 1.75rem;
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+  color: #0d6efd;
+}
+
+.legalContainer p {
+  font-size: 1rem;
+  line-height: 1.6;
+  margin-bottom: 1rem;
+}
+
+.legalContainer ul {
+  margin-bottom: 1rem;
+  padding-left: 1.5rem;
+}
+
+.legalContainer ul li {
+  margin-bottom: 0.5rem;
+}
+
+.legalContainer a {
+  color: #0d6efd;
+  text-decoration: underline;
+}
+
+.legalContainer a:hover {
+  text-decoration: none;
+}
+
+@media (max-width: 768px) {
+  .legalContainer {
+    padding: 2rem 1rem;
+  }
+
+  .legalContainer h1 {
+    font-size: 2rem;
+  }
+
+  .legalContainer h2 {
+    font-size: 1.5rem;
+  }
+}

@@ -1,0 +1,78 @@
+.servicesHero {
+  background: linear-gradient(135deg, var(--accent-green), #00a854);
+  color: white;
+  padding: 180px 0 100px;
+  text-align: center;
+}
+
+.servicesHero h1 {
+  font-size: 3.5rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+}
+
+.heroSubtitle {
+  font-size: 1.3rem;
+  opacity: 0.9;
+}
+
+.processSection {
+  background: var(--light-gray);
+}
+
+.processStep {
+  padding: 2rem 1rem;
+  position: relative;
+}
+
+.stepNumber {
+  width: 60px;
+  height: 60px;
+  background: var(--primary-blue);
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0 auto 1.5rem;
+  position: relative;
+}
+
+.stepNumber::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 100%;
+  width: 100%;
+  height: 2px;
+  background: var(--primary-blue);
+  opacity: 0.3;
+}
+
+.processStep:last-child .stepNumber::after {
+  display: none;
+}
+
+.processStep h4 {
+  font-size: 1.3rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  color: var(--dark-gray);
+}
+
+.processStep p {
+  color: #666;
+  line-height: 1.6;
+}
+
+@media (max-width: 768px) {
+  .servicesHero h1 {
+    font-size: 2.5rem;
+  }
+  
+  .stepNumber::after {
+    display: none;
+  }
+}

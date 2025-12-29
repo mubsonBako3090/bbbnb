@@ -1,0 +1,225 @@
+/* ===========================
+   HERO SECTION
+=========================== */
+.outageHero {
+  background: linear-gradient(135deg, #f8a3a3, #551b06);
+  color: white;
+  padding: 180px 0 100px;
+  text-align: center;
+}
+
+.outageHero h1 {
+  font-size: 3.5rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+}
+
+.heroSubtitle {
+  font-size: 1.3rem;
+  opacity: 0.9;
+}
+
+/* ===========================
+   QUICK ACTIONS
+=========================== */
+.quickActions {
+  padding: 60px 0;
+  background: var(--light-gray);
+}
+
+.actionCard {
+  background: white;
+  padding: 2rem;
+  border-radius: 15px;
+  text-align: center;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  height: 100%;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.actionCard:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+}
+
+.actionCard i {
+  font-size: 3rem;
+  color: var(--primary-blue);
+  margin-bottom: 1rem;
+}
+
+.actionCard h4 {
+  font-size: 1.3rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  color: var(--dark-gray);
+}
+
+.actionCard p {
+  color: #666;
+  margin-bottom: 1.5rem;
+}
+
+/* ===========================
+   MAP SECTION
+=========================== */
+.mapContainer {
+  background: white;
+  border-radius: 15px;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  height: 500px;
+}
+
+.mapPlaceholder {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(45deg, #f8f9fa, #e9ecef);
+  color: #6c757d;
+  padding: 1rem;
+  text-align: center;
+}
+
+.mapPlaceholder i {
+  font-size: 4rem;
+  margin-bottom: 1rem;
+}
+
+.mapPlaceholder p {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+/* ===========================
+   OUTAGE LIST
+=========================== */
+.outageList {
+  background: white;
+  padding: 2rem;
+  border-radius: 15px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  height: fit-content;
+}
+
+.outageList h3 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 1.5rem;
+  color: var(--dark-gray);
+}
+
+.outageItem {
+  padding: 1.5rem;
+  border: 1px solid #e9ecef;
+  border-radius: 10px;
+  margin-bottom: 1rem;
+  transition: all 0.3s ease;
+}
+
+.outageItem:hover {
+  border-color: var(--primary-blue);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.outageHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 0.5rem;
+}
+
+.outageHeader h5 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 0;
+  flex: 1;
+}
+
+/* STATUS BADGES */
+.InProgress {
+  background: #fff3cd;
+  color: #856404;
+  padding: 4px 8px;
+  border-radius: 5px;
+  font-size: 0.85rem;
+}
+
+.Investigating {
+  background: #cce7ff;
+  color: #004085;
+  padding: 4px 8px;
+  border-radius: 5px;
+  font-size: 0.85rem;
+}
+
+.Restored {
+  background: #d4edda;
+  color: #155724;
+  padding: 4px 8px;
+  border-radius: 5px;
+  font-size: 0.85rem;
+}
+
+/* ===========================
+   SAFETY TIPS
+=========================== */
+.safetyTips {
+  background: var(--light-gray);
+}
+
+.tipCard {
+  background: white;
+  padding: 2rem;
+  border-radius: 15px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  margin-bottom: 2rem;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.tipCard:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+}
+
+.tipCard i {
+  font-size: 2.5rem;
+  color: var(--primary-blue);
+  margin-bottom: 1rem;
+}
+
+.tipCard h5 {
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  color: var(--dark-gray);
+}
+
+.tipCard p {
+  color: #666;
+  line-height: 1.6;
+}
+
+/* ===========================
+   RESPONSIVE DESIGN
+=========================== */
+@media (max-width: 768px) {
+  .outageHero h1 {
+    font-size: 2.5rem;
+  }
+
+  .mapContainer {
+    height: 350px;
+  }
+
+  .actionCard {
+    padding: 1.5rem;
+  }
+
+  .tipCard {
+    padding: 1.5rem;
+  }
+}

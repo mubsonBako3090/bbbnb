@@ -1,0 +1,130 @@
+.hero {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding-top: 100px;
+}
+
+.heroTitle {
+  font-size: 3.5rem;
+  font-weight: 700;
+  margin-bottom: 1.5rem;
+  line-height: 1.2;
+}
+
+.highlight {
+  color: #ffd700;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.heroSubtitle {
+  font-size: 1.3rem;
+  margin-bottom: 2rem;
+  opacity: 0.9;
+}
+
+.heroButtons {
+  margin-top: 2rem;
+}
+
+.heroImage {
+  position: relative;
+  animation: float 8s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-20px); }
+}
+
+.heroImage img {
+  border-radius: 20px;
+  box-shadow: 0 20px 40px rgba(130, 219, 29, 0.3);
+}
+
+.galleryItem {
+  position: relative;
+  overflow: hidden;
+  border-radius: 15px;
+  cursor: pointer;
+  transition: transform 0.3s ease;
+}
+
+.galleryItem:hover {
+  transform: translateY(-10px);
+}
+
+.galleryItem img {
+  width: 200%;
+  height: 450px;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.galleryItem:hover img {
+  transform: scale(1.1);
+}
+
+.galleryOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(227, 228, 248, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.galleryItem:hover .galleryOverlay {
+  opacity: 1;
+}
+
+.galleryOverlay i {
+  font-size: 3rem;
+  color: rgb(255, 245, 245);
+}
+
+.ctaSection {
+  background: linear-gradient(135deg, var(--primary-blue), var(--secondary-blue));
+  padding: 60px 0;
+  text-align: center;
+}
+
+.ctaSection h3 {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+}
+
+@media (max-width: 768px) {
+  .heroTitle {
+    font-size: 2.5rem;
+  }
+  
+  .heroSubtitle {
+    font-size: 1.1rem;
+  }
+}
+
+.ourWorkTitle {
+  color: #caa053; /* blue */
+}
+
+.ourWorkSubtitle {
+  color: #741717; /* gray */
+}
+
+/* ---------------------------- */
+/* Pay Bill Button Custom Style */
+.payBillBtn {
+  background-color: #28a745 !important; /* green background */
+  color: white !important;               /* white text */
+  border-color: #28a745 !important;      /* match border */
+}
+
+.payBillBtn:hover {
+  background-color: #218838 !important;  /* darker green on hover */
+  border-color: #1e7e34 !important;
+}

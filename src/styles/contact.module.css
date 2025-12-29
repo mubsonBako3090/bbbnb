@@ -1,0 +1,171 @@
+.contactHero {
+  background: linear-gradient(135deg, #aa061c, #b38ed8);
+  color: rgb(240, 231, 231);
+  padding: 180px 0 100px;
+  text-align: center;
+}
+
+.contactHero h1 {
+  font-size: 3.5rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+}
+
+.heroSubtitle {
+  font-size: 1.3rem;
+  opacity: 0.9;
+}
+
+.infoCard {
+  background: rgb(223, 186, 186);
+  padding: 2.5rem 2rem;
+  border-radius: 20px;
+  text-align: center;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  height: 100%;
+  transition: transform 0.3s ease;
+}
+
+.infoCard:hover {
+  transform: translateY(-10px);
+}
+
+.infoIcon {
+  width: 80px;
+  height: 80px;
+  background: linear-gradient(135deg, var(--primary-blue), var(--secondary-blue));
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1.5rem;
+}
+
+.infoIcon i {
+  font-size: 2rem;
+  color: white;
+}
+
+.infoCard h4 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  color: var(--dark-gray);
+}
+
+.infoCard p {
+  color: #666;
+  margin-bottom: 1rem;
+}
+
+.infoLink {
+  color: var(--primary-blue);
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.3s ease;
+}
+
+.infoLink:hover {
+  color: var(--secondary-blue);
+  text-decoration: underline;
+}
+
+.address {
+  font-style: normal;
+  color: #666;
+  line-height: 1.6;
+}
+
+.contactFormSection {
+  background: var(--light-grey);
+}
+
+.formContainer {
+  background: rgb(255, 255, 255);
+  padding: 3rem;
+  border-radius: 20px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+}
+
+.formContainer h2 {
+  font-size: 2.5rem;
+  font-weight: 600;
+  color: var(--dark-gray);
+}
+
+.form-control, .form-select {
+  padding: 12px 15px;
+  border: 2px solid #e9ecef;
+  border-radius: 10px;
+  transition: all 0.3s ease;
+}
+
+.form-control:focus, .form-select:focus {
+  border-color: var(--primary-blue);
+  box-shadow: 0 0 0 0.2rem rgba(0, 102, 204, 0.25);
+}
+
+.hoursCard {
+  background: white;
+  padding: 3rem;
+  border-radius: 20px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
+.hoursCard h3 {
+  font-size: 2rem;
+  font-weight: 600;
+  color: var(--dark-gray);
+}
+
+.hoursList {
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+.hourItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 0;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.hourItem:last-child {
+  border-bottom: none;
+}
+
+.hourItem span:first-child {
+  font-weight: 500;
+  color: var(--dark-gray);
+}
+
+.hourItem span:last-child {
+  color: #666;
+}
+
+.emergencyNote {
+  margin-top: 2rem;
+  padding: 1rem;
+  background: #fff3cd;
+  border: 1px solid #ffeaa7;
+  border-radius: 10px;
+  text-align: center;
+  color: #856404;
+}
+
+@media (max-width: 768px) {
+  .contactHero h1 {
+    font-size: 2.5rem;
+  }
+  
+  .formContainer {
+    padding: 2rem;
+  }
+  
+  .hourItem {
+    flex-direction: column;
+    text-align: center;
+    gap: 0.5rem;
+  }
+}

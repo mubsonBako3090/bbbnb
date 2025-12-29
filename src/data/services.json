@@ -1,0 +1,4 @@
+[
+  { "id": "residential", "name": "Residential Services" },
+  { "id": "commercial", "name": "Commercial Services" }
+]
