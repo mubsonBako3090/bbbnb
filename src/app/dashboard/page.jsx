@@ -1,3 +1,4 @@
+
 'use client';
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
@@ -32,6 +33,38 @@ export default function Dashboard() {
   const [meterReadings, setMeterReadings] = useState([]);
   const [currentUsage, setCurrentUsage] = useState(0);
   const [newReading, setNewReading] = useState('');
+
+  // --- Navigation handlers ---
+  const handleNavigateToBills = () => {
+    // You can either scroll to the bill section or navigate to a bills page
+    // Option 1: Scroll to bill section (if it's on the same page)
+    const billSection = document.getElementById('bills-section');
+    if (billSection) {
+      billSection.scrollIntoView({ behavior: 'smooth' });
+    }
+    // Option 2: Navigate to a separate bills page
+    // router.push('/bills');
+  };
+
+  const handleNavigateToUsage = () => {
+    const usageSection = document.getElementById('usage-section');
+    if (usageSection) {
+      usageSection.scrollIntoView({ behavior: 'smooth' });
+    }
+    // Or navigate to usage page: router.push('/usage');
+  };
+
+  const handleNavigateToPrograms = () => {
+    // Navigate to programs page or open programs modal
+    router.push('/programs');
+    // Or scroll if programs section exists on page
+  };
+
+  const handleNavigateToOutages = () => {
+    // Navigate to outages page
+    router.push('/outages');
+    // Or scroll if outages section exists on page
+  };
 
   // --- Fetch dashboard & meter status ---
   useEffect(() => {
@@ -222,12 +255,12 @@ export default function Dashboard() {
                 
                 <button className="btn btn-danger mt-3" onClick={handleLogout}><i className="bi bi-box-arrow-right me-2"></i> Logout</button>
                 <button
-  className="btn btn-secondary mt-3"
-  onClick={() => router.push('/profile')}
->
-  <i className="bi bi-person-circle me-2"></i>
-  Profile
-</button>
+                  className="btn btn-secondary mt-3"
+                  onClick={() => router.push('/profile')}
+                >
+                  <i className="bi bi-person-circle me-2"></i>
+                  Profile
+                </button>
               </div>
             </div>
           </div>
@@ -269,8 +302,15 @@ export default function Dashboard() {
         <section className="section-padding">
           <div className="container">
             <div className="row">
+              {/* Bill Card */}
               <div className="col-md-3 mb-4">
-                <div className={styles.statCard}>
+                <div 
+                  className={`${styles.statCard} ${styles.clickableStatCard}`}
+                  onClick={handleNavigateToBills}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => e.key === 'Enter' && handleNavigateToBills()}
+                >
                   <div className={styles.statIcon}><i className="bi bi-receipt"></i></div>
                   <div className={styles.statContent}>
                     <h3>₦{currentBill.amountDue}</h3>
@@ -278,35 +318,71 @@ export default function Dashboard() {
                     <small>Period: {currentBill.period}</small>
                     <small>Due: {currentBill.dueDate?.toLocaleDateString() || 'N/A'}</small>
                   </div>
+                  <div className={styles.statArrow}>
+                    <i className="bi bi-chevron-right"></i>
+                  </div>
                 </div>
               </div>
+              
+              {/* Usage Card */}
               <div className="col-md-3 mb-4">
-                <div className={styles.statCard}>
+                <div 
+                  className={`${styles.statCard} ${styles.clickableStatCard}`}
+                  onClick={handleNavigateToUsage}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => e.key === 'Enter' && handleNavigateToUsage()}
+                >
                   <div className={styles.statIcon}><i className="bi bi-lightning"></i></div>
                   <div className={styles.statContent}>
                     <h3>{currentUsage} kWh</h3>
                     <p>Usage</p>
                     <small>Last reading</small>
                   </div>
+                  <div className={styles.statArrow}>
+                    <i className="bi bi-chevron-right"></i>
+                  </div>
                 </div>
               </div>
+              
+              {/* Programs Card */}
               <div className="col-md-3 mb-4">
-                <div className={styles.statCard}>
+                <div 
+                  className={`${styles.statCard} ${styles.clickableStatCard}`}
+                  onClick={handleNavigateToPrograms}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => e.key === 'Enter' && handleNavigateToPrograms()}
+                >
                   <div className={styles.statIcon}><i className="bi bi-gift"></i></div>
                   <div className={styles.statContent}>
                     <h3>{dashboardData.programs.length}</h3>
                     <p>Programs</p>
                     <small>Available</small>
                   </div>
+                  <div className={styles.statArrow}>
+                    <i className="bi bi-chevron-right"></i>
+                  </div>
                 </div>
               </div>
+              
+              {/* Outages Card */}
               <div className="col-md-3 mb-4">
-                <div className={styles.statCard}>
+                <div 
+                  className={`${styles.statCard} ${styles.clickableStatCard}`}
+                  onClick={handleNavigateToOutages}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => e.key === 'Enter' && handleNavigateToOutages()}
+                >
                   <div className={styles.statIcon}><i className="bi bi-geo-alt-fill"></i></div>
                   <div className={styles.statContent}>
                     <h3>{dashboardData.outages.length}</h3>
                     <p>Outages</p>
                     <small>Current</small>
+                  </div>
+                  <div className={styles.statArrow}>
+                    <i className="bi bi-chevron-right"></i>
                   </div>
                 </div>
               </div>
@@ -341,7 +417,7 @@ export default function Dashboard() {
 
         {/* --- Usage Chart --- */}
         {meterReadings.length > 0 && (
-          <section className={styles.sectionPadding}>
+          <section className={styles.sectionPadding} id="usage-section">
             <div className="container">
               <h3>Energy Usage</h3>
               <UsageChart readings={meterReadings} />
@@ -350,7 +426,7 @@ export default function Dashboard() {
         )}
 
         {/* --- Payment Section --- */}
-        <section className="section-padding">
+        <section className="section-padding" id="bills-section">
           <div className="container">
             <h2 className="section-title mb-4">Make a Payment</h2>
             <button className="btn btn-primary mb-3" onClick={openPaymentForm}>
