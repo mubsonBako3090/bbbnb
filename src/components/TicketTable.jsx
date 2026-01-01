@@ -1,3 +1,5 @@
+"use client";
+
 import styles from '@/styles/SupportDashboard.module.css';
 
 export default function TicketTable({ tickets, filters }) {

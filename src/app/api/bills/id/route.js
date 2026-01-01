@@ -1,100 +1,61 @@
 import { NextResponse } from 'next/server';
 import connectDB from '@/lib/database';
 import { requireAuth, requireAdmin } from '@/middleware/auth';
-import Bill from '@/models/Bills';
+import Bill from '@/models/Bill';
 import { successResponse, errorResponse } from '@/lib/utils';
 
 export async function GET(request, { params }) {
   try {
+    await connectDB();
     const user = await requireAuth(request);
-    const { id } = params;
 
-    const bill = await Bill.findById(id).populate('user', 'firstName lastName email accountNumber');
-    
+    const bill = await Bill.findById(params.id)
+      .populate('user', 'firstName lastName email accountNumber');
+
     if (!bill) {
-      return NextResponse.json(
-        errorResponse('Bill not found'),
-        { status: 404 }
-      );
+      return NextResponse.json(errorResponse('Bill not found'), { status: 404 });
     }
 
-    // Users can only access their own bills unless they're admin
     if (user.role !== 'admin' && bill.user._id.toString() !== user._id.toString()) {
-      return NextResponse.json(
-        errorResponse('Access denied'),
-        { status: 403 }
-      );
+      return NextResponse.json(errorResponse('Access denied'), { status: 403 });
     }
 
     return NextResponse.json(successResponse({ bill }));
-
   } catch (error) {
-    console.error('Get bill error:', error);
-    return NextResponse.json(
-      errorResponse(error.message),
-      { status: 401 }
-    );
+    return NextResponse.json(errorResponse(error.message), { status: 401 });
   }
 }
 
 export async function PUT(request, { params }) {
   try {
+    await connectDB();
     await requireAdmin(request);
-    const { id } = params;
-    const updateData = await request.json();
 
-    // Remove fields that shouldn't be updated directly
-    const { user, billNumber, accountNumber, ...allowedUpdates } = updateData;
+    const updates = await request.json();
+    delete updates.user;
+    delete updates.billNumber;
+    delete updates.accountNumber;
 
     const bill = await Bill.findByIdAndUpdate(
-      id,
-      allowedUpdates,
+      params.id,
+      updates,
       { new: true, runValidators: true }
-    ).populate('user', 'firstName lastName email accountNumber');
-
-    if (!bill) {
-      return NextResponse.json(
-        errorResponse('Bill not found'),
-        { status: 404 }
-      );
-    }
-
-    return NextResponse.json(
-      successResponse({ bill }, 'Bill updated successfully')
     );
 
+    return NextResponse.json(successResponse({ bill }, 'Bill updated'));
   } catch (error) {
-    console.error('Update bill error:', error);
-    return NextResponse.json(
-      errorResponse('Failed to update bill'),
-      { status: 400 }
-    );
+    return NextResponse.json(errorResponse('Update failed'), { status: 400 });
   }
 }
 
 export async function DELETE(request, { params }) {
   try {
+    await connectDB();
     await requireAdmin(request);
-    const { id } = params;
 
-    const bill = await Bill.findByIdAndDelete(id);
-
-    if (!bill) {
-      return NextResponse.json(
-        errorResponse('Bill not found'),
-        { status: 404 }
-      );
-    }
-
-    return NextResponse.json(
-      successResponse(null, 'Bill deleted successfully')
-    );
-
+    await Bill.findByIdAndDelete(params.id);
+    return NextResponse.json(successResponse(null, 'Bill deleted'));
   } catch (error) {
-    console.error('Delete bill error:', error);
-    return NextResponse.json(
-      errorResponse('Failed to delete bill'),
-      { status: 400 }
-    );
-  }
+    return NextResponse.json(errorResponse('Delete failed'), { status: 400 });
+  }
 }

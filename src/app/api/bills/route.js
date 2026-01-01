@@ -1,21 +1,22 @@
 import { NextResponse } from 'next/server';
 import connectDB from '@/lib/database';
 import { requireAuth, requireAdmin } from '@/middleware/auth';
-import Bill from '@/models/Bills';
+import Bill from '@/models/Bill';
 import User from '@/models/User';
-import { successResponse, errorResponse, handleError, generateBillNumber } from '@/lib/utils';
+import { successResponse, errorResponse, generateBillNumber } from '@/lib/utils';
 
 export async function GET(request) {
   try {
+    await connectDB();
     const user = await requireAuth(request);
+
     const { searchParams } = new URL(request.url);
+    const status = searchParams.get('status');
     const page = parseInt(searchParams.get('page')) || 1;
     const limit = parseInt(searchParams.get('limit')) || 10;
-    const status = searchParams.get('status');
 
     let query = {};
-    
-    // Non-admin users can only see their own bills
+
     if (user.role !== 'admin') {
       query.user = user._id;
     }
@@ -33,7 +34,6 @@ export async function GET(request) {
       .limit(limit);
 
     const total = await Bill.countDocuments(query);
-    const totalPages = Math.ceil(total / limit);
 
     return NextResponse.json(
       successResponse({
@@ -42,72 +42,40 @@ export async function GET(request) {
           page,
           limit,
           total,
-          totalPages,
-          hasNext: page < totalPages,
-          hasPrev: page > 1
+          totalPages: Math.ceil(total / limit)
         }
       })
     );
-
   } catch (error) {
-    console.error('Get bills error:', error);
-    return NextResponse.json(
-      errorResponse(error.message),
-      { status: 401 }
-    );
+    return NextResponse.json(errorResponse(error.message), { status: 401 });
   }
 }
 
 export async function POST(request) {
   try {
+    await connectDB();
     await requireAdmin(request);
-    
-    const billData = await request.json();
 
-    // Validate required fields
-    const requiredFields = ['user', 'billingPeriod', 'energyUsage', 'rate'];
-    for (const field of requiredFields) {
-      if (!billData[field]) {
-        return NextResponse.json(
-          errorResponse(`${field} is required`),
-          { status: 400 }
-        );
-      }
-    }
+    const data = await request.json();
+    const user = await User.findById(data.user);
 
-    // Verify user exists
-    const user = await User.findById(billData.user);
     if (!user) {
-      return NextResponse.json(
-        errorResponse('User not found'),
-        { status: 404 }
-      );
+      return NextResponse.json(errorResponse('User not found'), { status: 404 });
     }
 
-    // Generate bill number
-    const billNumber = generateBillNumber();
-
-    // Create bill
     const bill = await Bill.create({
-      ...billData,
-      billNumber,
-      accountNumber: user.accountNumber
+      ...data,
+      billNumber: generateBillNumber(),
+      user: user._id,
+      accountNumber: user.accountNumber,
+      amountDue: data.totalAmount
     });
 
-    const populatedBill = await Bill.findById(bill._id)
-      .populate('user', 'firstName lastName email accountNumber');
-
     return NextResponse.json(
-      successResponse({ bill: populatedBill }, 'Bill created successfully'),
+      successResponse({ bill }, 'Bill created successfully'),
       { status: 201 }
     );
-
   } catch (error) {
-    console.error('Create bill error:', error);
-    const errorData = handleError(error);
-    return NextResponse.json(
-      errorResponse(errorData.error, errorData.details),
-      { status: 400 }
-    );
-  }
+    return NextResponse.json(errorResponse(error.message), { status: 400 });
+  }
 }

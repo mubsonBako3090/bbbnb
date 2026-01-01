@@ -219,7 +219,15 @@ export default function Dashboard() {
               </div>
               <div className="col-md-4 text-md-end">
                 <span className={styles.statusBadge}><i className="bi bi-check-circle-fill me-1"></i> Active</span>
+                
                 <button className="btn btn-danger mt-3" onClick={handleLogout}><i className="bi bi-box-arrow-right me-2"></i> Logout</button>
+                <button
+  className="btn btn-secondary mt-3"
+  onClick={() => router.push('/profile')}
+>
+  <i className="bi bi-person-circle me-2"></i>
+  Profile
+</button>
               </div>
             </div>
           </div>
