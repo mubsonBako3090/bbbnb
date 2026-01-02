@@ -245,6 +245,42 @@
 .meterGeneratorContainer button:hover {
   background-color: #0b5ed7;
 }
+/* Add these styles to your existing Dashboard.module.css */
+
+.clickableStatCard {
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  padding-right: 40px; /* Space for arrow */
+}
+
+.clickableStatCard:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  background-color: #f8f9fa;
+}
+
+.clickableStatCard:active {
+  transform: translateY(0);
+}
+
+.statArrow {
+  position: absolute;
+  right: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #6c757d;
+  transition: transform 0.2s ease;
+}
+
+.clickableStatCard:hover .statArrow {
+  transform: translateY(-50%) translateX(3px);
+  color: #0d6efd;
+}
+
+.statCard {
+  position: relative;
+}
 
 /* --- Forms --- */
 .formGroup {
