@@ -9,6 +9,8 @@ import BillList from '@/components/BillList';
 import MeterGenerator from '@/components/dashboard/MeterGenerator';
 import UsageChart from '@/components/dashboard/UsageChart';
 import styles from '@/styles/Dashboard.module.css';
+import Link from "next/link";
+
 
 export default function Dashboard() {
   const router = useRouter();
@@ -32,6 +34,31 @@ export default function Dashboard() {
   const [meterReadings, setMeterReadings] = useState([]);
   const [currentUsage, setCurrentUsage] = useState(0);
   const [newReading, setNewReading] = useState('');
+
+  // --- Navigation handlers ---
+  const handleNavigateToBills = () => {
+    const billSection = document.getElementById('bills-section');
+    if (billSection) {
+      billSection.scrollIntoView({ behavior: 'smooth' });
+      billSection.focus(); // Add focus for screen readers
+    }
+  };
+
+  const handleNavigateToUsage = () => {
+    const usageSection = document.getElementById('usage-section');
+    if (usageSection) {
+      usageSection.scrollIntoView({ behavior: 'smooth' });
+      usageSection.focus();
+    }
+  };
+
+  const handleNavigateToPrograms = () => {
+    router.push('/programs');
+  };
+
+  const handleNavigateToOutages = () => {
+    router.push('/outages');
+  };
 
   // --- Fetch dashboard & meter status ---
   useEffect(() => {
@@ -172,10 +199,19 @@ export default function Dashboard() {
   if (loading || isDashboardLoading) return (
     <>
       <Header />
-      <div className={styles.loadingContainer}>
-        <div className="spinner-border text-primary" role="status">
+      <div 
+        className={styles.loadingContainer}
+        role="status"
+        aria-label="Loading dashboard content"
+      >
+        <div 
+          className="spinner-border text-primary" 
+          role="status"
+          aria-hidden="true"
+        >
           <span className="visually-hidden">Loading...</span>
         </div>
+        <p className="visually-hidden">Dashboard content is loading, please wait.</p>
       </div>
       <Footer />
     </>
@@ -187,47 +223,76 @@ export default function Dashboard() {
       <div className={styles.dashboard}>
 
         {/* --- Always-available Meter Generator --- */}
-        <section className="section-padding">
+        <section className="section-padding" aria-labelledby="meter-generator-heading">
           <div className="container mb-4">
+            <h2 id="meter-generator-heading" className="visually-hidden">Meter Generator</h2>
             <button 
               className="btn btn-primary"
               onClick={() => setShowMeterGenerator(!showMeterGenerator)}
+              aria-expanded={showMeterGenerator}
+              aria-controls="meter-generator-section"
             >
               {meterStatus?.hasMeter ? "Generate New Meter" : "Generate Meter"}
+              <span className="visually-hidden">
+                {showMeterGenerator ? 'Hide meter generator form' : 'Show meter generator form'}
+              </span>
             </button>
           </div>
           {showMeterGenerator && (
-            <div className="container">
-              <MeterGenerator 
-                onComplete={handleMeterGenerated} 
-                hasMeter={meterStatus?.hasMeter} 
-              />
+            <div 
+              id="meter-generator-section"
+              aria-live="polite"
+              aria-relevant="additions"
+            >
+              <div className="container">
+                <MeterGenerator 
+                  onComplete={handleMeterGenerated} 
+                  hasMeter={meterStatus?.hasMeter} 
+                />
+              </div>
             </div>
           )}
         </section>
 
         {/* --- Welcome Section --- */}
-        <section className={styles.welcomeSection}>
+        <section className={styles.welcomeSection} aria-label="Welcome and account information">
           <div className="container">
             <div className="row align-items-center">
               <div className="col-md-8">
-                <h1>Welcome back, {user?.firstName}!</h1>
+                <h1>
+                  Welcome back, <span className="text-primary">{user?.firstName}</span>!
+                </h1>
                 <p className={styles.welcomeSubtitle}>
-                  Account: {user?.accountNumber} • {user?.customerType?.charAt(0).toUpperCase() + user?.customerType?.slice(1)} Customer
+                  <span className="visually-hidden">Account details: </span>
+                  Account: <strong>{user?.accountNumber}</strong> • 
+                  {user?.customerType?.charAt(0).toUpperCase() + user?.customerType?.slice(1)} Customer
                   {user?.meterNumber && ` • Meter: ${user.meterNumber}`}
                 </p>
               </div>
               <div className="col-md-4 text-md-end">
-                <span className={styles.statusBadge}><i className="bi bi-check-circle-fill me-1"></i> Active</span>
+                <span 
+                  className={styles.statusBadge}
+                  role="status"
+                  aria-label="Account status: Active"
+                >
+                  <i className="bi bi-check-circle-fill me-1" aria-hidden="true"></i> Active
+                </span>
                 
-                <button className="btn btn-danger mt-3" onClick={handleLogout}><i className="bi bi-box-arrow-right me-2"></i> Logout</button>
+                <button 
+                  className="btn btn-danger mt-3" 
+                  onClick={handleLogout}
+                  aria-label="Logout from your account"
+                >
+                  <i className="bi bi-box-arrow-right me-2" aria-hidden="true"></i> Logout
+                </button>
                 <button
-  className="btn btn-secondary mt-3"
-  onClick={() => router.push('/profile')}
->
-  <i className="bi bi-person-circle me-2"></i>
-  Profile
-</button>
+                  className="btn btn-secondary mt-3 ms-2"
+                  onClick={() => router.push('/profile')}
+                  aria-label="Go to your profile page"
+                >
+                  <i className="bi bi-person-circle me-2" aria-hidden="true"></i>
+                  Profile
+                </button>
               </div>
             </div>
           </div>
@@ -235,10 +300,18 @@ export default function Dashboard() {
 
         {/* --- Meter Status Banner --- */}
         {meterStatus && (
-          <div className={styles.meterStatusBanner}>
+          <div 
+            className={styles.meterStatusBanner}
+            role="region"
+            aria-label="Meter status information"
+          >
             {meterStatus.currentRequest ? (
-              <div className={`${styles.statusAlert} ${styles.statusPending}`}>
-                <i className="bi bi-clock-history"></i>
+              <div 
+                className={`${styles.statusAlert} ${styles.statusPending}`}
+                role="alert"
+                aria-live="polite"
+              >
+                <i className="bi bi-clock-history" aria-hidden="true"></i>
                 <div className={styles.statusContent}>
                   <strong>Meter Installation Scheduled</strong>
                   <p>
@@ -247,90 +320,180 @@ export default function Dashboard() {
                   </p>
                   <small>Request ID: {meterStatus.currentRequest.requestId}</small>
                 </div>
-                <button className={styles.statusButton}>View Details</button>
+                <button 
+                  className={styles.statusButton}
+                  aria-label="View details of scheduled meter installation"
+                >
+                  View Details
+                </button>
               </div>
             ) : meterStatus.hasMeter ? (
-              <div className={`${styles.statusAlert} ${styles.statusActive}`}>
-                <i className="bi bi-check-circle"></i>
+              <div 
+                className={`${styles.statusAlert} ${styles.statusActive}`}
+                role="status"
+                aria-live="polite"
+              >
+                <i className="bi bi-check-circle" aria-hidden="true"></i>
                 <div className={styles.statusContent}>
                   <strong>Meter Active</strong>
                   <p>
                     Your {meterStatus.meterType} meter ({user.meterNumber}) is active and recording usage
                   </p>
-                  <small>Next reading: {user.nextMeterReadingDate ? new Date(user.nextMeterReadingDate).toLocaleDateString() : 'Not scheduled'}</small>
+                  <small>
+                    Next reading: {user.nextMeterReadingDate ? new Date(user.nextMeterReadingDate).toLocaleDateString() : 'Not scheduled'}
+                  </small>
                 </div>
-                <button className={styles.statusButton}>View Readings</button>
+                <button 
+                  className={styles.statusButton}
+                  aria-label="View meter readings history"
+                >
+                  View Readings
+                </button>
               </div>
             ) : null}
           </div>
         )}
 
-        {/* --- Quick Stats --- */}
-        <section className="section-padding">
-          <div className="container">
-            <div className="row">
-              <div className="col-md-3 mb-4">
-                <div className={styles.statCard}>
-                  <div className={styles.statIcon}><i className="bi bi-receipt"></i></div>
-                  <div className={styles.statContent}>
-                    <h3>₦{currentBill.amountDue}</h3>
-                    <p>Current Bill</p>
-                    <small>Period: {currentBill.period}</small>
-                    <small>Due: {currentBill.dueDate?.toLocaleDateString() || 'N/A'}</small>
-                  </div>
-                </div>
-              </div>
-              <div className="col-md-3 mb-4">
-                <div className={styles.statCard}>
-                  <div className={styles.statIcon}><i className="bi bi-lightning"></i></div>
-                  <div className={styles.statContent}>
-                    <h3>{currentUsage} kWh</h3>
-                    <p>Usage</p>
-                    <small>Last reading</small>
-                  </div>
-                </div>
-              </div>
-              <div className="col-md-3 mb-4">
-                <div className={styles.statCard}>
-                  <div className={styles.statIcon}><i className="bi bi-gift"></i></div>
-                  <div className={styles.statContent}>
-                    <h3>{dashboardData.programs.length}</h3>
-                    <p>Programs</p>
-                    <small>Available</small>
-                  </div>
-                </div>
-              </div>
-              <div className="col-md-3 mb-4">
-                <div className={styles.statCard}>
-                  <div className={styles.statIcon}><i className="bi bi-geo-alt-fill"></i></div>
-                  <div className={styles.statContent}>
-                    <h3>{dashboardData.outages.length}</h3>
-                    <p>Outages</p>
-                    <small>Current</small>
-                  </div>
-                </div>
-              </div>
-            </div>
+       {/* --- Quick Stats --- */}
+<section
+  className="section-padding"
+  aria-label="Quick statistics overview"
+  role="region"
+>
+  <div className="container">
+    <h2 className="visually-hidden">Quick Statistics</h2>
+
+    <div className="row">
+      {/* Bill Card */}
+      <div className="col-md-3 col-6 mb-4">
+        <Link
+          href="/bills"
+          className={`${styles.statCard} ${styles.clickableStatCard}`}
+          aria-label={`View bill details. Amount: ₦${currentBill.amountDue}, Period: ${currentBill.period}`}
+        >
+          <div className={styles.statIcon} aria-hidden="true">
+            <i className="bi bi-receipt"></i>
           </div>
-        </section>
+
+          <div className={styles.statContent}>
+            <span className="visually-hidden">Current Bill Amount</span>
+            <h3 aria-hidden="true">₦{currentBill.amountDue}</h3>
+            <p>Current Bill</p>
+            <small>Period: {currentBill.period}</small>
+            <small>Due: {currentBill.dueDate?.toLocaleDateString() || "N/A"}</small>
+          </div>
+
+          <div className={styles.statArrow} aria-hidden="true">
+            <i className="bi bi-chevron-right"></i>
+          </div>
+        </Link>
+      </div>
+
+      {/* Usage Card */}
+      <div className="col-md-3 col-6 mb-4">
+        <Link
+          href="/usage"
+          className={`${styles.statCard} ${styles.clickableStatCard}`}
+          aria-label={`View usage details. Current usage: ${currentUsage} kilowatt hours`}
+        >
+          <div className={styles.statIcon} aria-hidden="true">
+            <i className="bi bi-lightning"></i>
+          </div>
+
+          <div className={styles.statContent}>
+            <span className="visually-hidden">Current Usage</span>
+            <h3 aria-hidden="true">{currentUsage} kWh</h3>
+            <p>Usage</p>
+            <small>Last reading</small>
+          </div>
+
+          <div className={styles.statArrow} aria-hidden="true">
+            <i className="bi bi-chevron-right"></i>
+          </div>
+        </Link>
+      </div>
+
+      {/* Programs Card */}
+      <div className="col-md-3 col-6 mb-4">
+        <Link
+          href="/programs"
+          className={`${styles.statCard} ${styles.clickableStatCard}`}
+          aria-label={`View energy programs. ${dashboardData.programs.length} programs available`}
+        >
+          <div className={styles.statIcon} aria-hidden="true">
+            <i className="bi bi-gift"></i>
+          </div>
+
+          <div className={styles.statContent}>
+            <span className="visually-hidden">Available Programs</span>
+            <h3 aria-hidden="true">{dashboardData.programs.length}</h3>
+            <p>Programs</p>
+            <small>Available</small>
+          </div>
+
+          <div className={styles.statArrow} aria-hidden="true">
+            <i className="bi bi-chevron-right"></i>
+          </div>
+        </Link>
+      </div>
+
+      {/* Outages Card */}
+      <div className="col-md-3 col-6 mb-4">
+        <Link
+          href="/outages"
+          className={`${styles.statCard} ${styles.clickableStatCard}`}
+          aria-label={`View outage information. ${dashboardData.outages.length} current outages`}
+        >
+          <div className={styles.statIcon} aria-hidden="true">
+            <i className="bi bi-geo-alt-fill"></i>
+          </div>
+
+          <div className={styles.statContent}>
+            <span className="visually-hidden">Current Outages</span>
+            <h3 aria-hidden="true">{dashboardData.outages.length}</h3>
+            <p>Outages</p>
+            <small>Current</small>
+          </div>
+
+          <div className={styles.statArrow} aria-hidden="true">
+            <i className="bi bi-chevron-right"></i>
+          </div>
+        </Link>
+      </div>
+    </div>
+  </div>
+</section>
 
         {/* --- Meter Reading Section --- */}
         {user?.meterNumber && (
-          <section className={styles.meterReadingsSection}>
+          <section 
+            className={styles.meterReadingsSection}
+            aria-labelledby="meter-reading-heading"
+            role="region"
+          >
             <div className="container">
-              <h3>Submit Meter Reading</h3>
+              <h3 id="meter-reading-heading">Submit Meter Reading</h3>
               <div className={styles.readingForm}>
+                <label htmlFor="meter-reading-input" className="visually-hidden">
+                  Enter current meter reading in kilowatt hours
+                </label>
                 <input
+                  id="meter-reading-input"
                   type="number"
                   min={0}
                   placeholder="Enter current reading (kWh)"
                   value={newReading}
                   onChange={(e) => setNewReading(e.target.value)}
                   className="form-control mb-2"
+                  aria-describedby="meter-reading-help"
                 />
+                <small id="meter-reading-help" className="form-text text-muted">
+                  Enter the current reading from your meter in kilowatt hours
+                </small>
                 <button
-                  className="btn btn-success"
+                  className="btn btn-success mt-2"
                   onClick={handleSubmitReadingClick}
+                  aria-label="Submit meter reading"
                 >
                   Submit Reading
                 </button>
@@ -341,25 +504,82 @@ export default function Dashboard() {
 
         {/* --- Usage Chart --- */}
         {meterReadings.length > 0 && (
-          <section className={styles.sectionPadding}>
+          <section 
+            className={styles.sectionPadding} 
+            id="usage-section"
+            aria-labelledby="usage-chart-heading"
+            role="region"
+            tabIndex={-1}
+          >
             <div className="container">
-              <h3>Energy Usage</h3>
+              <h3 id="usage-chart-heading">Energy Usage</h3>
               <UsageChart readings={meterReadings} />
             </div>
           </section>
         )}
 
         {/* --- Payment Section --- */}
-        <section className="section-padding">
+        <section 
+          className="section-padding" 
+          id="bills-section"
+          aria-labelledby="payment-heading"
+          role="region"
+          tabIndex={-1}
+        >
           <div className="container">
-            <h2 className="section-title mb-4">Make a Payment</h2>
-            <button className="btn btn-primary mb-3" onClick={openPaymentForm}>
-              <i className="bi bi-credit-card me-2"></i> Pay Now
+            <h2 id="payment-heading" className="section-title mb-4">Make a Payment</h2>
+            <button 
+              className="btn btn-primary mb-3" 
+              onClick={openPaymentForm}
+              aria-label="Open payment form to pay your current bill"
+            >
+              <i className="bi bi-credit-card me-2" aria-hidden="true"></i> Pay Now
             </button>
-            {showPaymentForm && <PaymentForm bill={currentBill} onClose={closePaymentForm} onSubmit={handlePay} />}
-            <BillList bills={payments} />
+            {showPaymentForm && (
+              <div 
+                role="dialog"
+                aria-labelledby="payment-form-title"
+                aria-modal="true"
+              >
+                <PaymentForm 
+                  bill={currentBill} 
+                  onClose={closePaymentForm} 
+                  onSubmit={handlePay} 
+                />
+              </div>
+            )}
+            <div aria-live="polite" aria-atomic="true">
+              <BillList bills={payments} />
+            </div>
           </div>
         </section>
+
+        {/* Skip to main content link for keyboard users */}
+        <a 
+          href="#main-content" 
+          className="visually-hidden-focusable"
+          style={{
+            position: 'absolute',
+            top: '-40px',
+            left: '10px',
+            background: '#0d6efd',
+            color: 'white',
+            padding: '8px',
+            zIndex: 1000,
+            textDecoration: 'none'
+          }}
+          onFocus={() => {
+            // Ensure it's visible when focused
+            const element = document.querySelector('[style*="top: -40px"]');
+            if (element) element.style.top = '10px';
+          }}
+          onBlur={() => {
+            const element = document.querySelector('[style*="top: 10px"]');
+            if (element) element.style.top = '-40px';
+          }}
+        >
+          Skip to main content
+        </a>
 
       </div>
       <Footer />

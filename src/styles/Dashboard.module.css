@@ -312,3 +312,214 @@
   .statIcon { font-size: 1.2rem; margin-right: 1rem; }
   .statContent h3 { font-size: 1.5rem; }
 }
+/* Add these styles to your existing Dashboard.module.css */
+
+.clickableStatCard {
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  padding-right: 40px;
+  outline: 2px solid transparent;
+  border-radius: 8px;
+}
+
+.clickableStatCard:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  background-color: #f8f9fa;
+}
+
+.clickableStatCard:focus {
+  outline: 2px solid #0d6efd;
+  outline-offset: 2px;
+}
+
+.clickableStatCard:focus:not(:focus-visible) {
+  outline: none;
+}
+
+.clickableStatCard:focus-visible {
+  outline: 2px solid #0d6efd;
+  outline-offset: 2px;
+}
+
+.clickableStatCard:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.statArrow {
+  position: absolute;
+  right: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #6c757d;
+  transition: transform 0.2s ease;
+}
+
+.clickableStatCard:hover .statArrow {
+  transform: translateY(-50%) translateX(3px);
+  color: #0d6efd;
+}
+
+.statCard {
+  position: relative;
+}
+
+/* Focus styles for all interactive elements */
+.dashboard button:focus,
+.dashboard input:focus,
+.dashboard select:focus,
+.dashboard textarea:focus {
+  outline: 2px solid #0d6efd;
+  outline-offset: 2px;
+}
+
+.dashboard button:focus:not(:focus-visible),
+.dashboard input:focus:not(:focus-visible),
+.dashboard select:focus:not(:focus-visible),
+.dashboard textarea:focus:not(:focus-visible) {
+  outline: none;
+}
+
+.dashboard button:focus-visible,
+.dashboard input:focus-visible,
+.dashboard select:focus-visible,
+.dashboard textarea:focus-visible {
+  outline: 2px solid #0d6efd;
+  outline-offset: 2px;
+}
+
+/* Visually hidden but accessible class */
+.visually-hidden-focusable:not(:focus):not(:active) {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .clickableStatCard {
+    border: 2px solid currentColor;
+  }
+
+  .clickableStatCard:hover {
+    border-color: #07080a;
+  }
+}
+
+/* Reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  .clickableStatCard,
+  .clickableStatCard:hover,
+  .clickableStatCard:active,
+  .statArrow {
+    transition: none;
+  }
+
+  .clickableStatCard:hover {
+    transform: none;
+  }
+}
+/* Base card */
+.statCard {
+  background: #ffffff;
+  border-radius: 14px;
+  padding: 1.25rem;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  position: relative;
+}
+
+/* Clickable link card */
+.clickableStatCard {
+  text-decoration: none;
+  color: inherit;
+  display: flex;
+  cursor: pointer;
+  min-height: 120px; /* mobile tap target */
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    background-color 0.2s ease;
+}
+
+/* Hover */
+.clickableStatCard:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12);
+}
+
+/* Focus (keyboard users) */
+.clickableStatCard:focus-visible {
+  outline: 3px solid #0d6efd;
+  outline-offset: 3px;
+}
+
+/* Active (tap / click) */
+.clickableStatCard:active {
+  transform: scale(0.97);
+  box-shadow: 0 5px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Icon */
+.statIcon {
+  font-size: 2rem;
+  color: #0d6efd;
+  flex-shrink: 0;
+}
+
+/* Content */
+.statContent h3 {
+  margin: 0;
+  font-size: 1.5rem;
+}
+
+.statContent p {
+  margin: 0;
+  font-weight: 600;
+}
+
+.statContent small {
+  display: block;
+  color: #6c757d;
+}
+
+/* Arrow */
+.statArrow {
+  margin-left: auto;
+  font-size: 1.2rem;
+  opacity: 0.6;
+  transition: transform 0.2s ease;
+}
+
+.clickableStatCard:hover .statArrow {
+  transform: translateX(4px);
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .clickableStatCard,
+  .statArrow {
+    transition: none;
+  }
+}
+
+/* Mobile optimization */
+@media (max-width: 576px) {
+  .statCard {
+    padding: 1rem;
+  }
+
+  .statContent h3 {
+    font-size: 1.25rem;
+  }
+}
