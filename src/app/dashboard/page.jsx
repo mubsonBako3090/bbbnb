@@ -36,58 +36,30 @@ export default function Dashboard() {
   const [currentUsage, setCurrentUsage] = useState(0);
   const [newReading, setNewReading] = useState('');
 
-  // --- Navigation handlers ---
-  const handleNavigateToBills = () => {
-<<<<<<< HEAD
-    const billSection = document.getElementById('bills-section');
-    if (billSection) {
-      billSection.scrollIntoView({ behavior: 'smooth' });
-      billSection.focus(); // Add focus for screen readers
-    }
-=======
-    // You can either scroll to the bill section or navigate to a bills page
-    // Option 1: Scroll to bill section (if it's on the same page)
-    const billSection = document.getElementById('bills-section');
-    if (billSection) {
-      billSection.scrollIntoView({ behavior: 'smooth' });
-    }
-    // Option 2: Navigate to a separate bills page
-    // router.push('/bills');
->>>>>>> 2b269fb6f87ddd0caa42910a40ff255bdc2c630e
-  };
+// --- Navigation handlers ---
+const handleNavigateToBills = () => {
+  const billSection = document.getElementById('bills-section');
+  if (billSection) {
+    billSection.scrollIntoView({ behavior: 'smooth' });
+    billSection.focus(); // Add focus for screen readers
+  }
+};
 
-  const handleNavigateToUsage = () => {
-    const usageSection = document.getElementById('usage-section');
-    if (usageSection) {
-      usageSection.scrollIntoView({ behavior: 'smooth' });
-<<<<<<< HEAD
-      usageSection.focus();
-    }
-  };
+const handleNavigateToUsage = () => {
+  const usageSection = document.getElementById('usage-section');
+  if (usageSection) {
+    usageSection.scrollIntoView({ behavior: 'smooth' });
+    usageSection.focus();
+  }
+};
 
-  const handleNavigateToPrograms = () => {
-    router.push('/programs');
-  };
+const handleNavigateToPrograms = () => {
+  router.push('/programs');
+};
 
-  const handleNavigateToOutages = () => {
-    router.push('/outages');
-=======
-    }
-    // Or navigate to usage page: router.push('/usage');
-  };
-
-  const handleNavigateToPrograms = () => {
-    // Navigate to programs page or open programs modal
-    router.push('/programs');
-    // Or scroll if programs section exists on page
-  };
-
-  const handleNavigateToOutages = () => {
-    // Navigate to outages page
-    router.push('/outages');
-    // Or scroll if outages section exists on page
->>>>>>> 2b269fb6f87ddd0caa42910a40ff255bdc2c630e
-  };
+const handleNavigateToOutages = () => {
+  router.push('/outages');
+};
 
   // --- Fetch dashboard & meter status ---
   useEffect(() => {
@@ -314,21 +286,14 @@ export default function Dashboard() {
                 >
                   <i className="bi bi-box-arrow-right me-2" aria-hidden="true"></i> Logout
                 </button>
-                <button
-<<<<<<< HEAD
-                  className="btn btn-secondary mt-3 ms-2"
-                  onClick={() => router.push('/profile')}
-                  aria-label="Go to your profile page"
-                >
-                  <i className="bi bi-person-circle me-2" aria-hidden="true"></i>
-=======
-                  className="btn btn-secondary mt-3"
-                  onClick={() => router.push('/profile')}
-                >
-                  <i className="bi bi-person-circle me-2"></i>
->>>>>>> 2b269fb6f87ddd0caa42910a40ff255bdc2c630e
-                  Profile
-                </button>
+<button
+  className="btn btn-secondary mt-3 ms-2"
+  onClick={() => router.push('/profile')}
+  aria-label="Go to your profile page"
+>
+  <i className="bi bi-person-circle me-2" aria-hidden="true"></i>
+  Profile
+</button>
               </div>
             </div>
           </div>
@@ -390,8 +355,7 @@ export default function Dashboard() {
           </div>
         )}
 
-<<<<<<< HEAD
-       {/* --- Quick Stats --- */}
+{/* --- Quick Stats --- */}
 <section
   className="section-padding"
   aria-label="Quick statistics overview"
@@ -410,97 +374,6 @@ export default function Dashboard() {
         >
           <div className={styles.statIcon} aria-hidden="true">
             <i className="bi bi-receipt"></i>
-=======
-        {/* --- Quick Stats --- */}
-        <section className="section-padding">
-          <div className="container">
-            <div className="row">
-              {/* Bill Card */}
-              <div className="col-md-3 mb-4">
-                <div 
-                  className={`${styles.statCard} ${styles.clickableStatCard}`}
-                  onClick={handleNavigateToBills}
-                  role="button"
-                  tabIndex={0}
-                  onKeyDown={(e) => e.key === 'Enter' && handleNavigateToBills()}
-                >
-                  <div className={styles.statIcon}><i className="bi bi-receipt"></i></div>
-                  <div className={styles.statContent}>
-                    <h3>₦{currentBill.amountDue}</h3>
-                    <p>Current Bill</p>
-                    <small>Period: {currentBill.period}</small>
-                    <small>Due: {currentBill.dueDate?.toLocaleDateString() || 'N/A'}</small>
-                  </div>
-                  <div className={styles.statArrow}>
-                    <i className="bi bi-chevron-right"></i>
-                  </div>
-                </div>
-              </div>
-              
-              {/* Usage Card */}
-              <div className="col-md-3 mb-4">
-                <div 
-                  className={`${styles.statCard} ${styles.clickableStatCard}`}
-                  onClick={handleNavigateToUsage}
-                  role="button"
-                  tabIndex={0}
-                  onKeyDown={(e) => e.key === 'Enter' && handleNavigateToUsage()}
-                >
-                  <div className={styles.statIcon}><i className="bi bi-lightning"></i></div>
-                  <div className={styles.statContent}>
-                    <h3>{currentUsage} kWh</h3>
-                    <p>Usage</p>
-                    <small>Last reading</small>
-                  </div>
-                  <div className={styles.statArrow}>
-                    <i className="bi bi-chevron-right"></i>
-                  </div>
-                </div>
-              </div>
-              
-              {/* Programs Card */}
-              <div className="col-md-3 mb-4">
-                <div 
-                  className={`${styles.statCard} ${styles.clickableStatCard}`}
-                  onClick={handleNavigateToPrograms}
-                  role="button"
-                  tabIndex={0}
-                  onKeyDown={(e) => e.key === 'Enter' && handleNavigateToPrograms()}
-                >
-                  <div className={styles.statIcon}><i className="bi bi-gift"></i></div>
-                  <div className={styles.statContent}>
-                    <h3>{dashboardData.programs.length}</h3>
-                    <p>Programs</p>
-                    <small>Available</small>
-                  </div>
-                  <div className={styles.statArrow}>
-                    <i className="bi bi-chevron-right"></i>
-                  </div>
-                </div>
-              </div>
-              
-              {/* Outages Card */}
-              <div className="col-md-3 mb-4">
-                <div 
-                  className={`${styles.statCard} ${styles.clickableStatCard}`}
-                  onClick={handleNavigateToOutages}
-                  role="button"
-                  tabIndex={0}
-                  onKeyDown={(e) => e.key === 'Enter' && handleNavigateToOutages()}
-                >
-                  <div className={styles.statIcon}><i className="bi bi-geo-alt-fill"></i></div>
-                  <div className={styles.statContent}>
-                    <h3>{dashboardData.outages.length}</h3>
-                    <p>Outages</p>
-                    <small>Current</small>
-                  </div>
-                  <div className={styles.statArrow}>
-                    <i className="bi bi-chevron-right"></i>
-                  </div>
-                </div>
-              </div>
-            </div>
->>>>>>> 2b269fb6f87ddd0caa42910a40ff255bdc2c630e
           </div>
 
           <div className={styles.statContent}>
@@ -630,39 +503,31 @@ export default function Dashboard() {
           </section>
         )}
 
-        {/* --- Usage Chart --- */}
-        {meterReadings.length > 0 && (
-<<<<<<< HEAD
-          <section 
-            className={styles.sectionPadding} 
-            id="usage-section"
-            aria-labelledby="usage-chart-heading"
-            role="region"
-            tabIndex={-1}
-          >
-=======
-          <section className={styles.sectionPadding} id="usage-section">
->>>>>>> 2b269fb6f87ddd0caa42910a40ff255bdc2c630e
-            <div className="container">
-              <h3 id="usage-chart-heading">Energy Usage</h3>
-              <UsageChart readings={meterReadings} />
-            </div>
-          </section>
-        )}
+{/* --- Usage Chart --- */}
+{meterReadings.length > 0 && (
+  <section 
+    className={styles.sectionPadding} 
+    id="usage-section"
+    aria-labelledby="usage-chart-heading"
+    role="region"
+    tabIndex={-1}
+  >
+    <div className="container">
+      <h3 id="usage-chart-heading">Energy Usage</h3>
+      <UsageChart readings={meterReadings} />
+    </div>
+  </section>
+)}
 
-        {/* --- Payment Section --- */}
-<<<<<<< HEAD
-        <section 
-          className="section-padding" 
-          id="bills-section"
-          aria-labelledby="payment-heading"
-          role="region"
-          tabIndex={-1}
-        >
-=======
-        <section className="section-padding" id="bills-section">
->>>>>>> 2b269fb6f87ddd0caa42910a40ff255bdc2c630e
-          <div className="container">
+{/* --- Payment Section --- */}
+<section 
+  className="section-padding" 
+  id="bills-section"
+  aria-labelledby="payment-heading"
+  role="region"
+  tabIndex={-1}
+>
+  <div className="container">
             <h2 id="payment-heading" className="section-title mb-4">Make a Payment</h2>
             <button 
               className="btn btn-primary mb-3" 
