@@ -1,0 +1,650 @@
+/* components/InvoiceGenerator.module.css */
+
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1050;
+  animation: fadeIn 0.3s ease-out;
+  padding: 1rem;
+}
+
+.modalContent {
+  background: white;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 500px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  animation: slideUp 0.3s ease-out;
+  overflow: hidden;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Modal Header */
+.modalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem 1.5rem 1rem;
+  border-bottom: 1px solid #e9ecef;
+  background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+}
+
+.modalHeader h5 {
+  margin: 0;
+  font-weight: 600;
+  color: #212529;
+  font-size: 1.25rem;
+}
+
+.modalHeader .btn-close {
+  padding: 0.5rem;
+  margin: -0.5rem -0.5rem -0.5rem auto;
+  background-size: 0.75rem;
+  opacity: 0.7;
+  transition: opacity 0.2s ease;
+}
+
+.modalHeader .btn-close:hover {
+  opacity: 1;
+}
+
+/* Modal Body */
+.modalBody {
+  padding: 1.5rem;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.modalBody h6 {
+  font-weight: 600;
+  margin-bottom: 1rem;
+  color: #495057;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.modalBody h6::before {
+  content: "";
+  display: inline-block;
+  width: 4px;
+  height: 16px;
+  background: #0d6efd;
+  border-radius: 2px;
+}
+
+/* Bill Info Card */
+.billInfoCard {
+  background: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.billInfoCard p {
+  margin: 0.5rem 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.billInfoCard strong {
+  color: #495057;
+  font-weight: 500;
+}
+
+.billInfoCard span {
+  color: #212529;
+  font-weight: 600;
+}
+
+/* Format Selection */
+.formatSelection {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.formatButton {
+  flex: 1;
+  min-width: 120px;
+  padding: 0.75rem 1rem;
+  border: 2px solid #dee2e6;
+  border-radius: 8px;
+  background: white;
+  color: #495057;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.formatButton:hover {
+  border-color: #adb5bd;
+  background: #f8f9fa;
+  transform: translateY(-1px);
+}
+
+.formatButtonActive {
+  border-color: #0d6efd;
+  background: rgba(13, 110, 253, 0.05);
+  color: #0d6efd;
+  box-shadow: 0 2px 8px rgba(13, 110, 253, 0.1);
+}
+
+.formatButtonActive:hover {
+  border-color: #0b5ed7;
+  background: rgba(13, 110, 253, 0.1);
+}
+
+.formatButton i {
+  font-size: 1.25rem;
+}
+
+/* Options Section */
+.optionsSection {
+  background: #f8f9fa;
+  border-radius: 8px;
+  padding: 1.25rem;
+  margin-bottom: 1.5rem;
+}
+
+.optionItem {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.75rem;
+  padding: 0.5rem;
+  border-radius: 6px;
+  transition: background-color 0.2s ease;
+}
+
+.optionItem:hover {
+  background: rgba(255, 255, 255, 0.5);
+}
+
+.optionItem:last-child {
+  margin-bottom: 0;
+}
+
+.optionCheckbox {
+  margin-right: 0.75rem;
+  width: 18px;
+  height: 18px;
+  border: 2px solid #adb5bd;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.optionCheckbox:hover {
+  border-color: #0d6efd;
+}
+
+.optionCheckbox input {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+  height: 0;
+  width: 0;
+}
+
+.checkmark {
+  width: 10px;
+  height: 10px;
+  background: #0d6efd;
+  border-radius: 2px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.optionCheckbox input:checked ~ .checkmark {
+  opacity: 1;
+}
+
+.optionCheckbox input:checked {
+  border-color: #0d6efd;
+}
+
+.optionLabel {
+  flex: 1;
+  color: #495057;
+  font-size: 0.875rem;
+  cursor: pointer;
+  user-select: none;
+}
+
+.optionLabel:hover {
+  color: #212529;
+}
+
+/* Preview Section */
+.previewSection {
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+  background: white;
+}
+
+.previewTitle {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.previewButton {
+  background: none;
+  border: none;
+  color: #0d6efd;
+  font-size: 0.875rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+}
+
+.previewButton:hover {
+  background: rgba(13, 110, 253, 0.05);
+}
+
+.previewContent {
+  border: 1px solid #dee2e6;
+  border-radius: 4px;
+  padding: 1rem;
+  background: linear-gradient(45deg, #f8f9fa 25%, transparent 25%), 
+              linear-gradient(-45deg, #f8f9fa 25%, transparent 25%), 
+              linear-gradient(45deg, transparent 75%, #f8f9fa 75%), 
+              linear-gradient(-45deg, transparent 75%, #f8f9fa 75%);
+  background-size: 20px 20px;
+  background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+  min-height: 150px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.previewIcon {
+  font-size: 2rem;
+  color: #adb5bd;
+}
+
+.previewText {
+  text-align: center;
+  color: #6c757d;
+  font-size: 0.875rem;
+}
+
+/* Modal Footer */
+.modalFooter {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  padding: 1rem 1.5rem;
+  border-top: 1px solid #e9ecef;
+  background: #f8f9fa;
+}
+
+.footerButton {
+  padding: 0.625rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 500;
+  font-size: 0.875rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.2s ease;
+  border: 2px solid transparent;
+  min-width: 120px;
+  justify-content: center;
+}
+
+.footerButtonSecondary {
+  background: white;
+  color: #6c757d;
+  border-color: #dee2e6;
+}
+
+.footerButtonSecondary:hover {
+  background: #f8f9fa;
+  border-color: #adb5bd;
+  transform: translateY(-1px);
+}
+
+.footerButtonSecondary:active {
+  transform: translateY(0);
+}
+
+.footerButtonPrimary {
+  background: linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%);
+  color: white;
+  border: none;
+  box-shadow: 0 2px 8px rgba(13, 110, 253, 0.2);
+}
+
+.footerButtonPrimary:hover {
+  background: linear-gradient(135deg, #0b5ed7 0%, #0a58ca 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(13, 110, 253, 0.3);
+}
+
+.footerButtonPrimary:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(13, 110, 253, 0.2);
+}
+
+.footerButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+/* Loading State */
+.loadingSpinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top: 2px solid white;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .modalContent {
+    max-width: 100%;
+    margin: 0.5rem;
+    max-height: 85vh;
+  }
+  
+  .modalHeader {
+    padding: 1.25rem 1.25rem 0.75rem;
+  }
+  
+  .modalBody {
+    padding: 1.25rem;
+  }
+  
+  .formatSelection {
+    flex-direction: column;
+  }
+  
+  .formatButton {
+    min-width: 100%;
+  }
+  
+  .modalFooter {
+    flex-direction: column;
+  }
+  
+  .footerButton {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .modalOverlay {
+    padding: 0.5rem;
+  }
+  
+  .modalHeader h5 {
+    font-size: 1.125rem;
+  }
+  
+  .modalBody {
+    padding: 1rem;
+  }
+  
+  .modalFooter {
+    padding: 1rem;
+  }
+}
+
+/* Dark Mode Support */
+@media (prefers-color-scheme: dark) {
+  .modalContent {
+    background: #212529;
+    color: #e9ecef;
+  }
+  
+  .modalHeader {
+    background: linear-gradient(135deg, #2b3035 0%, #212529 100%);
+    border-bottom-color: #343a40;
+  }
+  
+  .modalHeader h5 {
+    color: #e9ecef;
+  }
+  
+  .modalHeader .btn-close {
+    filter: invert(1) grayscale(100%) brightness(200%);
+  }
+  
+  .modalBody h6 {
+    color: #adb5bd;
+  }
+  
+  .billInfoCard {
+    background: #2b3035;
+    border-color: #343a40;
+  }
+  
+  .billInfoCard strong {
+    color: #adb5bd;
+  }
+  
+  .billInfoCard span {
+    color: #e9ecef;
+  }
+  
+  .formatButton {
+    background: #2b3035;
+    border-color: #343a40;
+    color: #adb5bd;
+  }
+  
+  .formatButton:hover {
+    background: #343a40;
+    border-color: #495057;
+  }
+  
+  .formatButtonActive {
+    background: rgba(13, 110, 253, 0.15);
+    border-color: #0d6efd;
+    color: #0d6efd;
+  }
+  
+  .formatButtonActive:hover {
+    background: rgba(13, 110, 253, 0.2);
+  }
+  
+  .optionsSection {
+    background: #2b3035;
+  }
+  
+  .optionItem:hover {
+    background: rgba(52, 58, 64, 0.5);
+  }
+  
+  .optionLabel {
+    color: #adb5bd;
+  }
+  
+  .optionLabel:hover {
+    color: #e9ecef;
+  }
+  
+  .previewSection {
+    background: #2b3035;
+    border-color: #343a40;
+  }
+  
+  .previewContent {
+    background: linear-gradient(45deg, #343a40 25%, transparent 25%), 
+                linear-gradient(-45deg, #343a40 25%, transparent 25%), 
+                linear-gradient(45deg, transparent 75%, #343a40 75%), 
+                linear-gradient(-45deg, transparent 75%, #343a40 75%);
+    background-size: 20px 20px;
+    background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+    border-color: #495057;
+  }
+  
+  .previewIcon {
+    color: #6c757d;
+  }
+  
+  .previewText {
+    color: #adb5bd;
+  }
+  
+  .modalFooter {
+    background: #2b3035;
+    border-top-color: #343a40;
+  }
+  
+  .footerButtonSecondary {
+    background: #343a40;
+    color: #adb5bd;
+    border-color: #495057;
+  }
+  
+  .footerButtonSecondary:hover {
+    background: #495057;
+  }
+  
+  .footerButtonPrimary {
+    background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+  }
+  
+  .footerButtonPrimary:hover {
+    background: linear-gradient(135deg, #0b5ed7 0%, #0a4da3 100%);
+  }
+}
+
+/* Print Styles */
+@media print {
+  .modalOverlay {
+    position: static;
+    background: none;
+    padding: 0;
+  }
+  
+  .modalContent {
+    box-shadow: none;
+    max-width: none;
+    max-height: none;
+  }
+  
+  .modalHeader,
+  .modalFooter,
+  .formatSelection,
+  .optionsSection {
+    display: none;
+  }
+  
+  .modalBody {
+    padding: 0;
+  }
+}
+
+/* Accessibility */
+.visuallyHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Focus styles for better accessibility */
+.formatButton:focus-visible,
+.footerButton:focus-visible,
+.optionCheckbox:focus-visible,
+.modalHeader .btn-close:focus-visible {
+  outline: 2px solid #0d6efd;
+  outline-offset: 2px;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .modalContent {
+    border: 2px solid #000;
+  }
+  
+  .formatButtonActive {
+    border-width: 3px;
+  }
+  
+  .billInfoCard {
+    border-width: 2px;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .modalOverlay,
+  .modalContent,
+  .formatButton,
+  .footerButton,
+  .optionItem {
+    animation: none;
+    transition: none;
+  }
+  
+  .checkmark {
+    transition: none;
+  }
+}

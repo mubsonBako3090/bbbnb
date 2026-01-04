@@ -1,0 +1,438 @@
+/* components/BillList.module.css */
+
+.billList {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 16px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+}
+
+.billItem {
+  border: none;
+  border-bottom: 1px solid #e9ecef;
+  padding: 1.25rem 1.5rem;
+  transition: all 0.2s ease;
+  background: white;
+  cursor: pointer;
+}
+
+.billItem:hover {
+  background-color: #f8f9fa;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.billItem:last-child {
+  border-bottom: none;
+}
+
+.billItem:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.1);
+}
+
+.billItem:focus-visible {
+  outline: 2px solid #0d6efd;
+  outline-offset: 2px;
+}
+
+.billIcon {
+  color: #0d6efd;
+  transition: transform 0.2s ease;
+}
+
+.billItem:hover .billIcon {
+  transform: scale(1.1);
+}
+
+.expandIcon {
+  color: #6c757d;
+  font-size: 0.875rem;
+  transition: transform 0.3s ease;
+}
+
+.billItem[aria-expanded="true"] .expandIcon {
+  transform: rotate(180deg);
+  color: #0d6efd;
+}
+
+/* Details section */
+.billDetails {
+  animation: slideDown 0.3s ease-out;
+  background: #f8f9fa;
+  margin-top: 1rem;
+  padding: 1.25rem;
+  border-radius: 8px;
+  border-left: 4px solid #0d6efd;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Table styles within bill details */
+.detailsTable {
+  width: 100%;
+  font-size: 0.875rem;
+}
+
+.detailsTable th {
+  font-weight: 600;
+  color: #495057;
+  background-color: #f8f9fa;
+  border-bottom: 2px solid #dee2e6;
+  padding: 0.75rem;
+}
+
+.detailsTable td {
+  padding: 0.75rem;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.detailsTable tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* Charges table */
+.chargesTable {
+  background: white;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.chargesTable th {
+  background-color: #f8f9fa;
+  font-weight: 600;
+  color: #495057;
+}
+
+.chargesTable tfoot {
+  background-color: #f8f9fa;
+  font-weight: 600;
+}
+
+.chargesTable tfoot td {
+  border-top: 2px solid #dee2e6;
+}
+
+/* Status badges */
+.statusBadge {
+  padding: 0.25rem 0.75rem;
+  border-radius: 50px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.statusPaid {
+  background-color: #d1e7dd;
+  color: #0f5132;
+}
+
+.statusOverdue {
+  background-color: #f8d7da;
+  color: #842029;
+}
+
+.statusPending {
+  background-color: #fff3cd;
+  color: #664d03;
+}
+
+.statusPartiallyPaid {
+  background-color: #cff4fc;
+  color: #055160;
+}
+
+.statusGenerated {
+  background-color: #d8f2ff;
+  color: #0a58ca;
+}
+
+/* Action buttons */
+.actionButtons {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e9ecef;
+}
+
+.actionButton {
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  transition: all 0.2s ease;
+  border: 1px solid transparent;
+}
+
+.actionButtonPrimary {
+  background-color: #0d6efd;
+  color: white;
+}
+
+.actionButtonPrimary:hover {
+  background-color: #0b5ed7;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(13, 110, 253, 0.2);
+}
+
+.actionButtonSecondary {
+  background-color: white;
+  color: #495057;
+  border-color: #dee2e6;
+}
+
+.actionButtonSecondary:hover {
+  background-color: #f8f9fa;
+  border-color: #adb5bd;
+  transform: translateY(-1px);
+}
+
+.actionButtonInfo {
+  background-color: white;
+  color: #0dcaf0;
+  border-color: #0dcaf0;
+}
+
+.actionButtonInfo:hover {
+  background-color: #0dcaf0;
+  color: white;
+  transform: translateY(-1px);
+}
+
+/* Empty state */
+.emptyState {
+  text-align: center;
+  padding: 4rem 2rem;
+  color: #6c757d;
+}
+
+.emptyStateIcon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  opacity: 0.5;
+}
+
+.emptyStateTitle {
+  font-size: 1.25rem;
+  margin-bottom: 0.5rem;
+  color: #495057;
+}
+
+.emptyStateText {
+  font-size: 0.875rem;
+  margin-bottom: 1.5rem;
+  max-width: 400px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Loading state */
+.loadingState {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 200px;
+}
+
+.loadingSpinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid #f3f3f3;
+  border-top: 3px solid #0d6efd;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Responsive styles */
+@media (max-width: 768px) {
+  .billItem {
+    padding: 1rem;
+  }
+  
+  .billDetails {
+    padding: 1rem;
+  }
+  
+  .actionButtons {
+    flex-direction: column;
+  }
+  
+  .actionButton {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .detailsTable th,
+  .detailsTable td {
+    padding: 0.5rem;
+  }
+  
+  .chargesTable {
+    font-size: 0.75rem;
+  }
+}
+
+/* Print styles */
+@media print {
+  .billList {
+    box-shadow: none;
+    border: 1px solid #dee2e6;
+  }
+  
+  .billItem {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+  
+  .actionButtons {
+    display: none;
+  }
+  
+  .expandIcon {
+    display: none;
+  }
+}
+
+/* Accessibility */
+.visuallyHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Focus styles for keyboard navigation */
+.billItem:focus-visible {
+  position: relative;
+  z-index: 1;
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .billList {
+    background: #212529;
+    box-shadow: 0 2px 16px rgba(0, 0, 0, 0.3);
+  }
+  
+  .billItem {
+    background: #212529;
+    border-bottom-color: #343a40;
+  }
+  
+  .billItem:hover {
+    background-color: #2b3035;
+  }
+  
+  .billDetails {
+    background: #2b3035;
+    border-left-color: #0d6efd;
+  }
+  
+  .detailsTable th {
+    background-color: #2b3035;
+    color: #e9ecef;
+    border-bottom-color: #495057;
+  }
+  
+  .detailsTable td {
+    color: #adb5bd;
+    border-bottom-color: #495057;
+  }
+  
+  .chargesTable {
+    background: #343a40;
+    border-color: #495057;
+  }
+  
+  .chargesTable th {
+    background-color: #2b3035;
+    color: #e9ecef;
+  }
+  
+  .chargesTable tfoot {
+    background-color: #2b3035;
+  }
+  
+  .actionButtonSecondary {
+    background-color: #343a40;
+    color: #e9ecef;
+    border-color: #495057;
+  }
+  
+  .actionButtonSecondary:hover {
+    background-color: #495057;
+  }
+  
+  .emptyState {
+    color: #adb5bd;
+  }
+  
+  .emptyStateTitle {
+    color: #e9ecef;
+  }
+}
+
+/* Animation for loading bills */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.billItem {
+  animation: fadeIn 0.3s ease-out;
+}
+
+/* Smooth scrolling for anchor links */
+.billList {
+  scroll-behavior: smooth;
+}
+
+/* Custom scrollbar for the list */
+.billList::-webkit-scrollbar {
+  width: 8px;
+}
+
+.billList::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.billList::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
+}
+
+.billList::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
