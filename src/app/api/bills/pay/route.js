@@ -3,7 +3,7 @@ import connectDB from '@/lib/database';
 import { requireAuth } from '@/middleware/auth';
 import Bill from '@/models/Bill';
 import Payment from '@/models/Payment';
-import { processPayment, verifyPayment } from '@/lib/payment/processors';
+import { processPayment, verifyPayment } from '@/lib/payments/processors';
 import { successResponse, errorResponse } from '@/lib/utils';
 
 // POST /api/bills/[id]/pay - Make a payment for a bill
