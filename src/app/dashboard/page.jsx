@@ -9,7 +9,7 @@ import BillList from '@/components/BillList';
 import MeterGenerator from '@/components/dashboard/MeterGenerator';
 import UsageChart from '@/components/dashboard/UsageChart';
 import styles from '@/styles/Dashboard.module.css';
-import Link from "next/link";
+
 
 export default function Dashboard() {
   const router = useRouter();
@@ -207,20 +207,55 @@ export default function Dashboard() {
 
   // --- Payment Form Handlers (UPDATED) ---
   const openPaymentForm = () => {
-    if (currentBill && currentBill.id && currentBill.amountDue > 0) {
-      setShowPaymentForm(true);
-    } else {
-      alert(currentBill?.status === 'paid' ? "Bill already paid." : "No bill available for payment.");
-    }
-  };
+  // Always allow payment
+  setShowPaymentForm(true);
+};
+
   
   const closePaymentForm = () => setShowPaymentForm(false);
   
-  const handlePaymentSuccess = (paymentData) => {
-    // Refresh data after successful payment
+ const handlePaymentSuccess = async (paymentData) => {
+  try {
+    const token = localStorage.getItem('token');
+
+    // If there is a bill with amount due → pay bill
+    if (currentBill?.id && currentBill.amountDue > 0) {
+      await fetch(`/api/bills/${currentBill.id}/pay`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          amount: paymentData.amount,
+          reference: paymentData.reference,
+        }),
+      });
+    } 
+    // No bill → fund wallet
+    else {
+      await fetch('/api/wallet/fund', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          amount: paymentData.amount,
+          reference: paymentData.reference,
+        }),
+      });
+    }
+
+    setShowPaymentForm(false);
     fetchDashboardData();
-    alert('Payment processed successfully!');
-  };
+    alert('Payment successful!');
+  } catch (error) {
+    console.error(error);
+    alert('Payment completed but failed to update records.');
+  }
+};
+
 
   // --- Submit Meter Reading (UPDATED) ---
   const handleSubmitReadingClick = async () => {
@@ -703,14 +738,12 @@ export default function Dashboard() {
                           <p className="text-muted">Amount Due</p>
                         </div>
                         <button 
-                          className="btn btn-primary btn-lg w-100"
-                          onClick={openPaymentForm}
-                          aria-label={`Pay bill ${currentBill.billNumber}`}
-                          disabled={currentBill.amountDue <= 0}
-                        >
-                          <i className="bi bi-credit-card me-2" aria-hidden="true"></i> 
-                          {currentBill.amountDue > 0 ? 'Pay Now' : 'Paid'}
-                        </button>
+  className="btn btn-primary btn-lg w-100"
+  onClick={openPaymentForm}
+>
+  {currentBill?.id ? 'Pay Bill' : 'Fund Wallet'}
+</button>
+
                       </div>
                     </div>
                   </div>
@@ -858,6 +891,21 @@ export default function Dashboard() {
                 </div>
               )}
             </div>
+          </div>
+        </section>
+
+          {/* --- Payment Section --- */}
+        <section className="section-padding">
+          <div className="container">
+            <h2 className="section-title mb-4">Make a Payment</h2>
+            <button className="btn btn-primary mb-3" onClick={openPaymentForm}>
+              <i className="bi bi-credit-card me-2"></i> Pay Now
+            </button>
+            {showPaymentForm && <PaymentForm bill={currentBill} onClose={closePaymentForm} onSubmit={handlePaymentSuccess}
+ />}
+          <BillList bills={bills} />
+
+
           </div>
         </section>
 
