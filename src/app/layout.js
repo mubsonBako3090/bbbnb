@@ -3,6 +3,7 @@ import { useEffect } from 'react';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { AuthModalProvider } from '@/components/AuthModalContext';
 import '@/styles/globals.css';
+import { NotificationProvider } from '@/contexts/NotificationContext';
 
 export default function RootLayout({ children }) {
   useEffect(() => {
@@ -23,7 +24,9 @@ export default function RootLayout({ children }) {
       <body>
         <AuthProvider>
           <AuthModalProvider>
-            {children}      {/* Header/Navbar inside this can use useAuthModal */}
+            <NotificationProvider>
+              {children}      {/* Header/Navbar inside this can use useAuthModal */}
+            </NotificationProvider>
           </AuthModalProvider>
         </AuthProvider>
       </body>

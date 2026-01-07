@@ -1,33 +1,42 @@
-/* Dashboard.module.css */
+/* Dashboard.module.css - UPDATED VERSION */
 
-/* --- General Layout --- */
+/* ===== GENERAL LAYOUT ===== */
 .dashboard {
   padding: 2rem 0;
-  background-color: #f8f9fa;
+  background-color: var(--light-gray);
   min-height: 100vh;
+  width: 100%;
 }
 
-/* --- Loading Spinner --- */
+/* ===== LOADING STATES ===== */
 .loadingContainer {
   display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
-  min-height: 50vh;
+  min-height: 60vh;
+  text-align: center;
 }
 
-/* --- Unauthorized Page --- */
+.loadingContainer p {
+  margin-top: 1rem;
+  color: var(--dark-gray);
+}
+
+/* ===== UNAUTHORIZED PAGE ===== */
 .unauthorized {
   padding: 120px 0 80px;
   min-height: 60vh;
   display: flex;
   align-items: center;
   flex-direction: column;
+  justify-content: center;
   text-align: center;
 }
 
 .unauthorized i {
   font-size: 4rem;
-  color: #dc3545;
+  color: var(--danger-color);
   margin-bottom: 1.5rem;
 }
 
@@ -36,20 +45,69 @@
   margin-bottom: 1rem;
 }
 
-/* --- Welcome Section --- */
+/* ===== METER GENERATOR SECTION ===== */
+.meterGeneratorSection {
+  background: linear-gradient(135deg, var(--primary-blue), var(--secondary-blue));
+  color: white;
+  padding: 1.5rem 0;
+  position: relative;
+}
+
+.meterGeneratorContainer {
+  margin-top: 1.5rem;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border-radius: 12px;
+  padding: 2rem;
+  animation: fadeIn 0.3s ease;
+}
+
+.meterGeneratorContainer button {
+  background-color: white;
+  color: var(--primary-blue);
+  border: none;
+  padding: 0.6rem 1.2rem;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.3s;
+}
+
+.meterGeneratorContainer button:hover {
+  background-color: rgba(255, 255, 255, 0.9);
+  transform: translateY(-2px);
+}
+
+/* ===== WELCOME SECTION ===== */
 .welcomeSection {
   background: linear-gradient(135deg, var(--primary-blue), var(--secondary-blue));
   color: white;
   padding: 3rem 0;
   border-radius: 10px;
   margin-bottom: 2rem;
-  box-shadow: 0 0 10px rgba(0,0,0,0.05);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  position: relative;
+  overflow: hidden;
 }
 
-.welcomeSection h1 {
+.welcomeSection::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 200px;
+  height: 200px;
+  background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+  border-radius: 50%;
+  transform: translate(50%, -50%);
+}
+
+.welcomeTitle {
   font-size: 2.5rem;
-  font-weight: 700;
+  font-weight: 800;
   margin-bottom: 0.5rem;
+  position: relative;
+  z-index: 1;
 }
 
 .welcomeSubtitle {
@@ -58,55 +116,48 @@
   margin-top: 0.5rem;
 }
 
-/* --- Status Badge --- */
-.statusBadge {
-  display: inline-block;
-  padding: 0.4rem 0.8rem;
-  border-radius: 20px;
-  font-size: 0.85rem;
-  font-weight: 500;
-  background-color: #28a745;
-  color: #fff;
+.welcomeDetails {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  margin-top: 1rem;
+  position: relative;
+  z-index: 1;
 }
 
-/* --- Quick Stats Cards --- */
-.statCard {
-  background-color: #fff;
-  border-radius: 10px;
-  padding: 1.5rem;
-  text-align: center;
-  box-shadow: 0 0 10px rgba(0,0,0,0.05);
-  transition: transform 0.3s ease;
-}
-
-.statCard:hover {
-  transform: translateY(-5px);
-}
-
-.statIcon {
-  font-size: 2rem;
-  color: #0d6efd;
-  margin-bottom: 0.5rem;
-}
-
-.statContent h3 {
-  font-size: 1.5rem;
-  margin-bottom: 0.25rem;
-}
-
-.statContent p {
+.detailItem {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
   font-size: 0.95rem;
-  color: #6c757d;
-  margin-bottom: 0.25rem;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  backdrop-filter: blur(5px);
 }
 
-.statContent small {
-  display: block;
-  font-size: 0.8rem;
-  color: #adb5bd;
+.detailItem i {
+  color: #ffffff;
 }
 
-/* --- Meter Status Banner --- */
+.statusBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1.25rem;
+  background: rgba(40, 167, 69, 0.2);
+  color: white;
+  border-radius: 20px;
+  font-weight: 600;
+  backdrop-filter: blur(5px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.statusBadge i {
+  font-size: 0.9rem;
+}
+
+/* ===== METER STATUS BANNER ===== */
 .meterStatusBanner {
   margin-bottom: 2rem;
 }
@@ -114,175 +165,656 @@
 .statusAlert {
   display: flex;
   align-items: center;
-  padding: 1rem 1.5rem;
-  border-radius: 10px;
+  padding: 1.25rem 1.5rem;
+  border-radius: 12px;
   margin-bottom: 1rem;
-  box-shadow: 0 0 8px rgba(0,0,0,0.05);
-  color: #fff;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  color: white;
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.3s ease;
+}
+
+.statusAlert:hover {
+  transform: translateY(-2px);
 }
 
 .statusAlert i {
   font-size: 2rem;
-  margin-right: 1rem;
+  margin-right: 1.25rem;
+  z-index: 1;
 }
 
 .statusContent {
   flex: 1;
   display: flex;
   flex-direction: column;
+  z-index: 1;
 }
 
 .statusContent strong {
   display: block;
-  font-size: 1rem;
+  font-size: 1.1rem;
   margin-bottom: 0.25rem;
+  font-weight: 600;
 }
 
 .statusContent p {
   margin-bottom: 0.25rem;
-  font-size: 0.9rem;
+  font-size: 0.95rem;
+  opacity: 0.9;
 }
 
 .statusContent small {
-  font-size: 0.75rem;
-  color: #6c757d;
+  font-size: 0.8rem;
+  opacity: 0.8;
 }
 
 .statusButton {
   margin-left: auto;
-  background-color: #0d6efd;
-  color: #fff;
-  border: none;
-  padding: 0.5rem 1rem;
-  border-radius: 5px;
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  padding: 0.6rem 1.25rem;
+  border-radius: 6px;
   cursor: pointer;
-  transition: all 0.2s;
+  font-weight: 500;
+  transition: all 0.3s;
+  backdrop-filter: blur(5px);
+  z-index: 1;
 }
 
 .statusButton:hover {
-  background: rgba(255,255,255,0.35);
+  background: rgba(255, 255, 255, 0.3);
+  transform: translateY(-2px);
 }
 
 .statusPending {
-  background-color: #fff3cd;
-  color: #856404;
+  background: linear-gradient(135deg, #ffc107, #ff9800);
 }
 
 .statusActive {
-  background-color: #d1e7dd;
-  color: #0f5132;
+  background: linear-gradient(135deg, #28a745, #20c997);
 }
 
 .statusIssue {
-  background-color: #dc3545;
-  color: #fff;
+  background: linear-gradient(135deg, #dc3545, #e83e8c);
 }
 
-/* --- Meter Readings Section --- */
-.meterReadingsSection {
-  padding: 2rem 0;
-  background-color: #fff;
-  border-radius: 10px;
+/* ===== QUICK STATS SECTION ===== */
+.statsSection {
+  padding: 2rem 0 3rem;
+}
+
+.sectionTitle {
+  font-size: 1.75rem;
+  font-weight: 700;
   margin-bottom: 2rem;
-  box-shadow: 0 0 10px rgba(0,0,0,0.05);
+  color: var(--dark-gray);
+  position: relative;
+  padding-bottom: 0.5rem;
 }
 
-.readingForm {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
+.sectionTitle::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 60px;
+  height: 3px;
+  background: var(--primary-blue);
+  border-radius: 2px;
 }
 
-.readingForm input {
-  flex: 1 1 auto;
-}
-
-.readingForm button {
-  flex: 0 0 auto;
-}
-
-/* --- Section Padding --- */
-.sectionPadding {
-  padding: 2rem 0;
-}
-
-/* --- Usage Chart Section --- */
-.usageChart {
-  background-color: #fff;
+/* Stat Cards */
+.statCard {
+  background: white;
+  border-radius: 14px;
   padding: 1.5rem;
-  border-radius: 10px;
-  box-shadow: 0 0 10px rgba(0,0,0,0.05);
+  text-align: left;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  transition: all 0.3s ease;
+  height: 100%;
+  position: relative;
+  border: 1px solid rgba(0,0,0,0.05);
+  overflow: hidden;
 }
 
-/* --- Meter Generator --- */
-.meterGenerator {
-  background: #fff;
-  padding: 2rem;
-  border-radius: 1rem;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-  max-width: 700px;
-  margin: 2rem auto;
+.statCard::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  background: var(--primary-blue);
 }
-
-.meterGenerator h2 {
-  text-align: center;
-  margin-bottom: 1.5rem;
-  font-weight: 600;
-  color: #0d6efd;
-}
-
-.meterGeneratorContainer button {
-  background-color: #0d6efd;
-  color: #fff;
-  border: none;
-  padding: 0.6rem 1.2rem;
-  border-radius: 5px;
-  cursor: pointer;
-  font-weight: 500;
-  transition: background 0.3s;
-}
-
-.meterGeneratorContainer button:hover {
-  background-color: #0b5ed7;
-}
-/* Add these styles to your existing Dashboard.module.css */
 
 .clickableStatCard {
   cursor: pointer;
-  transition: all 0.3s ease;
-  position: relative;
-  padding-right: 40px; /* Space for arrow */
+  text-decoration: none;
+  color: inherit;
+  display: block;
+  outline: 2px solid transparent;
+  outline-offset: 2px;
+  min-height: 120px;
 }
 
 .clickableStatCard:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  transform: translateY(-4px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
   background-color: #f8f9fa;
 }
 
+.clickableStatCard:focus-visible {
+  outline: 3px solid var(--primary-blue);
+  outline-offset: 3px;
+}
+
 .clickableStatCard:active {
-  transform: translateY(0);
+  transform: scale(0.98);
+  box-shadow: 0 5px 12px rgba(0, 0, 0, 0.1);
+}
+
+.statIconContainer {
+  width: 60px;
+  height: 60px;
+  background: linear-gradient(135deg, var(--primary-blue), var(--secondary-blue));
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1.25rem;
+}
+
+.statIconContainer i {
+  font-size: 1.5rem;
+  color: white;
+}
+
+.statIcon {
+  font-size: 2rem;
+  color: var(--primary-blue);
+  margin-bottom: 1rem;
+}
+
+.statContent {
+  flex: 1;
+}
+
+.statContent h3 {
+  font-size: 1.75rem;
+  font-weight: 700;
+  margin-bottom: 0.25rem;
+  color: var(--dark-gray);
+}
+
+.statContent p {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #6c757d;
+  margin-bottom: 0.5rem;
+}
+
+.statContent small {
+  display: block;
+  font-size: 0.85rem;
+  color: #adb5bd;
+  line-height: 1.4;
 }
 
 .statArrow {
   position: absolute;
-  right: 15px;
+  right: 1.5rem;
   top: 50%;
   transform: translateY(-50%);
   color: #6c757d;
-  transition: transform 0.2s ease;
+  font-size: 1.2rem;
+  transition: all 0.3s ease;
+  opacity: 0.6;
 }
 
 .clickableStatCard:hover .statArrow {
-  transform: translateY(-50%) translateX(3px);
-  color: #0d6efd;
+  transform: translateY(-50%) translateX(4px);
+  color: var(--primary-blue);
+  opacity: 1;
 }
 
-.statCard {
+/* ===== METER READING SECTION ===== */
+.meterReadingSection {
+  margin-bottom: 2rem;
+}
+
+.meterReadingSection .card {
+  border: none;
+  border-radius: 14px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+}
+
+.meterReadingSection .card-body {
+  padding: 2rem;
+}
+
+.meterReadingSection .card-title {
+  color: var(--dark-gray);
+  font-weight: 600;
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.meterReadingSection .card-title i {
+  color: var(--primary-blue);
+  font-size: 1.25rem;
+}
+
+.readingForm {
+  margin-bottom: 1.5rem;
+}
+
+.readingForm .form-label {
+  font-weight: 600;
+  color: var(--dark-gray);
+  margin-bottom: 0.5rem;
+}
+
+.readingForm .input-group {
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.readingForm .form-control {
+  border: 2px solid #e9ecef;
+  border-right: none;
+  padding: 0.875rem 1rem;
+  font-size: 1rem;
+  transition: all 0.3s;
+}
+
+.readingForm .form-control:focus {
+  border-color: var(--primary-blue);
+  box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+  z-index: 1;
+}
+
+.readingForm .input-group-text {
+  background: #f8f9fa;
+  border: 2px solid #e9ecef;
+  border-left: none;
+  font-weight: 500;
+  color: #6c757d;
+}
+
+.readingForm .form-text {
+  font-size: 0.85rem;
+  color: #6c757d;
+  margin-top: 0.5rem;
+}
+
+.readingForm button {
+  padding: 0.875rem 1.5rem;
+  font-weight: 600;
+  border-radius: 8px;
+  transition: all 0.3s;
+  width: 100%;
+}
+
+.readingForm button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+/* Latest Readings List */
+.listGroup {
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.listGroupItem {
+  border: none;
+  border-bottom: 1px solid #e9ecef;
+  padding: 1rem 1.25rem;
+  transition: background-color 0.2s;
+}
+
+.listGroupItem:lastChild {
+  border-bottom: none;
+}
+
+.listGroupItem:hover {
+  background-color: #f8f9fa;
+}
+
+/* ===== USAGE CHART SECTION ===== */
+.usageChartSection {
+  margin-bottom: 2rem;
+}
+
+.usageChartSection .card {
+  border: none;
+  border-radius: 14px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+}
+
+.usageChartSection .card-body {
+  padding: 2rem;
+}
+
+.usageChartSection .card-title {
+  color: var(--dark-gray);
+  font-weight: 600;
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.usageChartSection .dropdownToggle {
+  border-radius: 8px;
+  padding: 0.5rem 1rem;
+  font-weight: 500;
+}
+
+.usageChartSection .dropdownMenu {
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  border: 1px solid #e9ecef;
+}
+
+.usageChartSection .dropdownItem {
+  padding: 0.75rem 1.25rem;
+  transition: all 0.2s;
+}
+
+.usageChartSection .dropdownItem:hover {
+  background-color: var(--primary-blue);
+  color: white;
+}
+
+/* ===== PAYMENT SECTION ===== */
+.paymentSection {
+  margin-bottom: 2rem;
+}
+
+.paymentSection .card {
+  border: none;
+  border-radius: 14px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+}
+
+.paymentSection .card-body {
+  padding: 2rem;
+}
+
+.paymentSection .card-title {
+  color: var(--dark-gray);
+  font-weight: 600;
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.billSummary {
+  background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+  padding: 1.75rem;
+  border-radius: 12px;
+  margin-bottom: 2rem;
+  border: 1px solid #dee2e6;
+}
+
+.billSummary .fs5 {
+  font-size: 1.75rem !important;
+  font-weight: 700;
+}
+
+.paymentSection .btnLg {
+  padding: 1rem 2rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  border-radius: 10px;
+  transition: all 0.3s;
+}
+
+.paymentSection .btnLg:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(13, 110, 253, 0.25);
+}
+
+/* ===== QUICK ACTIONS SECTION ===== */
+.quickActionsSection {
+  margin-bottom: 2rem;
+}
+
+.quickActionsSection .card {
+  border: none;
+  border-radius: 14px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+}
+
+.quickActionsSection .card-body {
+  padding: 2rem;
+}
+
+.quickActionsSection .card-title {
+  color: var(--dark-gray);
+  font-weight: 600;
+  margin-bottom: 1.5rem;
+}
+
+.quickActionsSection .btn {
+  padding: 1rem 1.25rem;
+  border-radius: 8px;
+  text-align: left;
+  transition: all 0.3s;
+  border: 2px solid #e9ecef;
+  color: var(--dark-gray);
+  font-weight: 500;
+}
+
+.quickActionsSection .btn:hover {
+  background-color: var(--primary-blue);
+  color: white;
+  border-color: var(--primary-blue);
+  transform: translateX(8px);
+}
+
+.quickActionsSection .btn i {
+  transition: transform 0.3s;
+}
+
+.quickActionsSection .btn:hover i {
+  transform: translateX(4px);
+}
+
+/* ===== RECENT BILLS SECTION ===== */
+.recentBillsSection {
+  padding: 3rem 0;
+  background: white;
   position: relative;
 }
 
-/* --- Forms --- */
+.recentBillsSection::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #e9ecef, transparent);
+}
+
+.recentBillsSection .sectionTitle {
+  margin-bottom: 0;
+}
+
+.recentBillsSection .btnLink {
+  color: var(--primary-blue);
+  text-decoration: none;
+  font-weight: 600;
+  transition: all 0.3s;
+  padding: 0.5rem 0;
+}
+
+.recentBillsSection .btnLink:hover {
+  color: var(--secondary-blue);
+  transform: translateX(4px);
+}
+
+.billCard {
+  border: 1px solid #e9ecef;
+  border-radius: 12px;
+  transition: all 0.3s ease;
+  height: 100%;
+  position: relative;
+  overflow: hidden;
+}
+
+.billCard:hover {
+  border-color: var(--primary-blue);
+  box-shadow: 0 8px 25px rgba(13, 110, 253, 0.15);
+  transform: translateY(-4px);
+}
+
+.billCard .cardBody {
+  padding: 1.5rem;
+}
+
+.billCard .cardSubtitle {
+  color: #6c757d;
+  font-size: 0.9rem;
+  margin-bottom: 0.25rem;
+}
+
+.billCard .badge {
+  font-size: 0.75rem;
+  padding: 0.35rem 0.75rem;
+  border-radius: 20px;
+  font-weight: 600;
+}
+
+.billCard .fwBold {
+  color: var(--primary-blue);
+  font-size: 1.25rem;
+}
+
+/* ===== SUMMARY SECTION (Outages & Programs) ===== */
+.summarySection {
+  padding: 3rem 0;
+  background: linear-gradient(135deg, #f8f9fa, #ffffff);
+  position: relative;
+}
+
+.summarySection .card {
+  border: none;
+  border-radius: 14px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+  height: 100%;
+  transition: transform 0.3s ease;
+}
+
+.summarySection .card:hover {
+  transform: translateY(-4px);
+}
+
+.summarySection .card-body {
+  padding: 2rem;
+}
+
+.summarySection .card-title {
+  color: var(--dark-gray);
+  font-weight: 600;
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.summarySection .listGroupItem {
+  border: none;
+  border-bottom: 1px solid #f1f3f5;
+  padding: 1rem 0;
+}
+
+.summarySection .listGroupItem:lastChild {
+  border-bottom: none;
+}
+
+.summarySection .btnLink {
+  color: var(--primary-blue);
+  text-decoration: none;
+  font-weight: 600;
+  transition: all 0.3s;
+}
+
+.summarySection .btnLink:hover {
+  color: var(--secondary-blue);
+  transform: translateX(4px);
+}
+
+/* ===== BUTTON STYLES ===== */
+.btn {
+  border-radius: 8px;
+  font-weight: 600;
+  padding: 0.75rem 1.5rem;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border: 2px solid transparent;
+}
+
+.btnPrimary {
+  background: linear-gradient(135deg, var(--primary-blue), var(--secondary-blue));
+  border: none;
+}
+
+.btnPrimary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(13, 110, 253, 0.3);
+}
+
+.btnOutlinePrimary {
+  border-color: var(--primary-blue);
+  color: var(--primary-blue);
+}
+
+.btnOutlinePrimary:hover {
+  background-color: var(--primary-blue);
+  color: white;
+  transform: translateY(-2px);
+}
+
+.btnSuccess {
+  background: linear-gradient(135deg, #28a745, #20c997);
+  border: none;
+}
+
+.btnSuccess:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(40, 167, 69, 0.3);
+}
+
+.btnDanger {
+  background: linear-gradient(135deg, #dc3545, #e83e8c);
+  border: none;
+}
+
+.btnDanger:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(220, 53, 69, 0.3);
+}
+
+/* ===== FORMS ===== */
 .formGroup {
   margin-bottom: 1.5rem;
 }
@@ -291,271 +823,244 @@
   display: block;
   margin-bottom: 0.5rem;
   font-weight: 600;
-  color: #2c3e50;
+  color: var(--dark-gray);
 }
 
 .formControl {
   width: 100%;
-  padding: 0.75rem;
-  border: 1px solid #ced4da;
-  border-radius: 0.375rem;
+  padding: 0.875rem 1rem;
+  border: 2px solid #ced4da;
+  border-radius: 8px;
   font-size: 1rem;
-  transition: border-color 0.15s ease-in-out;
+  transition: all 0.3s;
 }
 
 .formControl:focus {
   outline: none;
-  border-color: #0066cc;
-  box-shadow: 0 0 0 0.2rem rgba(0, 102, 204, 0.25);
+  border-color: var(--primary-blue);
+  box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
 }
 
-/* --- Buttons --- */
-.nextButton,
-.backButton,
-.submitButton,
-.dashboardButton,
-.printButton {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.75rem 1.5rem;
-  border-radius: 0.5rem;
-  font-weight: 600;
-  cursor: pointer;
-  border: none;
-  transition: all 0.3s;
-}
+/* ===== RESPONSIVE DESIGN ===== */
 
-.nextButton { background: #0066cc; color: #fff; }
-.nextButton:hover { background: #0052a3; transform: translateX(5px); }
-
-.backButton { background: #6c757d; color: #fff; }
-.backButton:hover { background: #5a6268; }
-
-.submitButton { background: #28a745; color: #fff; }
-.submitButton:hover { background: #218838; }
-
-.dashboardButton { background: #0066cc; color: #fff; }
-.dashboardButton:hover { background: #0052a3; }
-
-.printButton { background: #6c757d; color: #fff; }
-.printButton:hover { background: #5a6268; }
-
-/* --- Responsive --- */
-@media (max-width: 768px) {
-  .welcomeSection h1 { font-size: 2rem; }
-  .statCard { padding: 1.5rem; }
-  .statIcon { font-size: 1.2rem; margin-right: 1rem; }
-  .statContent h3 { font-size: 1.5rem; }
-}
-/* Add these styles to your existing Dashboard.module.css */
-
-.clickableStatCard {
-  cursor: pointer;
-  transition: all 0.3s ease;
-  position: relative;
-  padding-right: 40px;
-  outline: 2px solid transparent;
-  border-radius: 8px;
-}
-
-.clickableStatCard:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-  background-color: #f8f9fa;
-}
-
-.clickableStatCard:focus {
-  outline: 2px solid #0d6efd;
-  outline-offset: 2px;
-}
-
-.clickableStatCard:focus:not(:focus-visible) {
-  outline: none;
-}
-
-.clickableStatCard:focus-visible {
-  outline: 2px solid #0d6efd;
-  outline-offset: 2px;
-}
-
-.clickableStatCard:active {
-  transform: translateY(0);
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-}
-
-.statArrow {
-  position: absolute;
-  right: 15px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: #6c757d;
-  transition: transform 0.2s ease;
-}
-
-.clickableStatCard:hover .statArrow {
-  transform: translateY(-50%) translateX(3px);
-  color: #0d6efd;
-}
-
-.statCard {
-  position: relative;
-}
-
-/* Focus styles for all interactive elements */
-.dashboard button:focus,
-.dashboard input:focus,
-.dashboard select:focus,
-.dashboard textarea:focus {
-  outline: 2px solid #0d6efd;
-  outline-offset: 2px;
-}
-
-.dashboard button:focus:not(:focus-visible),
-.dashboard input:focus:not(:focus-visible),
-.dashboard select:focus:not(:focus-visible),
-.dashboard textarea:focus:not(:focus-visible) {
-  outline: none;
-}
-
-.dashboard button:focus-visible,
-.dashboard input:focus-visible,
-.dashboard select:focus-visible,
-.dashboard textarea:focus-visible {
-  outline: 2px solid #0d6efd;
-  outline-offset: 2px;
-}
-
-/* Visually hidden but accessible class */
-.visually-hidden-focusable:not(:focus):not(:active) {
-  position: absolute !important;
-  width: 1px !important;
-  height: 1px !important;
-  padding: 0 !important;
-  margin: -1px !important;
-  overflow: hidden !important;
-  clip: rect(0, 0, 0, 0) !important;
-  white-space: nowrap !important;
-  border: 0 !important;
-}
-
-/* High contrast mode support */
-@media (prefers-contrast: high) {
-  .clickableStatCard {
-    border: 2px solid currentColor;
+/* Large devices (desktops, less than 1200px) */
+@media (max-width: 1199.98px) {
+  .welcomeTitle {
+    font-size: 2.25rem;
   }
-
-  .clickableStatCard:hover {
-    border-color: #07080a;
+  
+  .statContent h3 {
+    font-size: 1.5rem;
+  }
+  
+  .statIconContainer {
+    width: 55px;
+    height: 55px;
   }
 }
 
-/* Reduced motion preference */
-@media (prefers-reduced-motion: reduce) {
-  .clickableStatCard,
-  .clickableStatCard:hover,
-  .clickableStatCard:active,
-  .statArrow {
-    transition: none;
+/* Medium devices (tablets, less than 992px) */
+@media (max-width: 991.98px) {
+  .dashboard {
+    padding: 1.5rem 0;
   }
-
-  .clickableStatCard:hover {
-    transform: none;
+  
+  .welcomeSection {
+    padding: 2.5rem 0;
   }
-}
-/* Base card */
-.statCard {
-  background: #ffffff;
-  border-radius: 14px;
-  padding: 1.25rem;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  position: relative;
-}
-
-/* Clickable link card */
-.clickableStatCard {
-  text-decoration: none;
-  color: inherit;
-  display: flex;
-  cursor: pointer;
-  min-height: 120px; /* mobile tap target */
-  transition:
-    transform 0.2s ease,
-    box-shadow 0.2s ease,
-    background-color 0.2s ease;
-}
-
-/* Hover */
-.clickableStatCard:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12);
-}
-
-/* Focus (keyboard users) */
-.clickableStatCard:focus-visible {
-  outline: 3px solid #0d6efd;
-  outline-offset: 3px;
-}
-
-/* Active (tap / click) */
-.clickableStatCard:active {
-  transform: scale(0.97);
-  box-shadow: 0 5px 12px rgba(0, 0, 0, 0.15);
-}
-
-/* Icon */
-.statIcon {
-  font-size: 2rem;
-  color: #0d6efd;
-  flex-shrink: 0;
-}
-
-/* Content */
-.statContent h3 {
-  margin: 0;
-  font-size: 1.5rem;
-}
-
-.statContent p {
-  margin: 0;
-  font-weight: 600;
-}
-
-.statContent small {
-  display: block;
-  color: #6c757d;
-}
-
-/* Arrow */
-.statArrow {
-  margin-left: auto;
-  font-size: 1.2rem;
-  opacity: 0.6;
-  transition: transform 0.2s ease;
-}
-
-.clickableStatCard:hover .statArrow {
-  transform: translateX(4px);
-}
-
-/* Reduced motion support */
-@media (prefers-reduced-motion: reduce) {
-  .clickableStatCard,
-  .statArrow {
-    transition: none;
+  
+  .welcomeTitle {
+    font-size: 2rem;
+  }
+  
+  .welcomeDetails {
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  .detailItem {
+    width: fit-content;
+  }
+  
+  .statsSection,
+  .recentBillsSection,
+  .summarySection {
+    padding: 2rem 0;
+  }
+  
+  .sectionTitle {
+    font-size: 1.5rem;
+  }
+  
+  .statCard {
+    padding: 1.25rem;
+  }
+  
+  .statContent h3 {
+    font-size: 1.4rem;
+  }
+  
+  .meterGeneratorContainer {
+    padding: 1.5rem;
   }
 }
 
-/* Mobile optimization */
-@media (max-width: 576px) {
+/* Small devices (landscape phones, less than 768px) */
+@media (max-width: 767.98px) {
+  .welcomeSection {
+    padding: 2rem 0;
+    border-radius: 8px;
+  }
+  
+  .welcomeTitle {
+    font-size: 1.75rem;
+    text-align: center;
+  }
+  
+  .welcomeDetails {
+    justify-content: center;
+  }
+  
+  .statusBadge {
+    padding: 0.4rem 1rem;
+    font-size: 0.9rem;
+  }
+  
+  .statusAlert {
+    flex-direction: column;
+    text-align: center;
+    padding: 1.5rem;
+  }
+  
+  .statusAlert i {
+    margin-right: 0;
+    margin-bottom: 1rem;
+  }
+  
+  .statusButton {
+    margin-left: 0;
+    margin-top: 1rem;
+    width: 100%;
+  }
+  
+  .statCard {
+    padding: 1.25rem;
+  }
+  
+  .statIconContainer {
+    width: 50px;
+    height: 50px;
+    margin-bottom: 1rem;
+  }
+  
+  .statIconContainer i {
+    font-size: 1.25rem;
+  }
+  
+  .statContent h3 {
+    font-size: 1.3rem;
+  }
+  
+  .meterReadingSection .card-body,
+  .usageChartSection .card-body,
+  .paymentSection .card-body {
+    padding: 1.5rem;
+  }
+  
+  .billSummary {
+    padding: 1.25rem;
+  }
+}
+
+/* Extra small devices (portrait phones, less than 576px) */
+@media (max-width: 575.98px) {
+  .dashboard {
+    padding: 1rem 0;
+  }
+  
+  .welcomeTitle {
+    font-size: 1.5rem;
+  }
+  
+  .welcomeSubtitle {
+    font-size: 1rem;
+    text-align: center;
+  }
+  
+  .statusBadge {
+    font-size: 0.8rem;
+    padding: 0.35rem 0.75rem;
+  }
+  
   .statCard {
     padding: 1rem;
+    min-height: auto;
   }
-
+  
+  .clickableStatCard {
+    min-height: 100px;
+  }
+  
+  .statIconContainer {
+    width: 45px;
+    height: 45px;
+  }
+  
   .statContent h3 {
-    font-size: 1.25rem;
+    font-size: 1.2rem;
+  }
+  
+  .statContent p {
+    font-size: 0.9rem;
+  }
+  
+  .statArrow {
+    font-size: 1rem;
+    right: 1rem;
+  }
+  
+  .detailItem {
+    font-size: 0.85rem;
+    padding: 0.4rem 0.75rem;
+  }
+  
+  .meterGeneratorContainer {
+    padding: 1.25rem;
+  }
+  
+  .btn {
+    padding: 0.625rem 1.25rem;
+    font-size: 0.9rem;
+  }
+}
+
+/* ===== ACCESSIBILITY & REDUCED MOTION ===== */
+@media (prefers-reduced-motion: reduce) {
+  .dashboard *,
+  .clickableStatCard,
+  .statArrow,
+  .btn,
+  .statusAlert,
+  .billCard {
+    transition: none !important;
+    animation: none !important;
+  }
+  
+  .clickableStatCard:hover,
+  .billCard:hover {
+    transform: none !important;
+  }
+}
+
+/* High contrast mode */
+@media (prefers-contrast: high) {
+  .statCard,
+  .billCard,
+  .card {
+    border: 2px solid currentColor;
+  }
+  
+  .btn {
+    border: 2px solid currentColor;
   }
 }

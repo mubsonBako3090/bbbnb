@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import Header from '@/components/ui/Header';
@@ -10,21 +10,36 @@ import MeterGenerator from '@/components/dashboard/MeterGenerator';
 import UsageChart from '@/components/dashboard/UsageChart';
 import styles from '@/styles/Dashboard.module.css';
 
-
 export default function Dashboard() {
   const router = useRouter();
   const { user, isAuthenticated, loading, logout } = useAuth();
 
-  // --- States ---
+  // Refs for scroll positioning
+  const meterReadingRef = useRef(null);
+  const dashboardTopRef = useRef(null);
+
+  // --- Consolidated States ---
   const [dashboardData, setDashboardData] = useState({
     programs: [],
     outages: [],
+    usageData: [],
+    
   });
-  const [meterStatus, setMeterStatus] = useState(null);
+  
+  const [meterStatus, setMeterStatus] = useState({
+    hasMeter: false,
+    currentRequest: null,
+    meterType: null,
+    meterNumber: null
+  });
+  
   const [showMeterGenerator, setShowMeterGenerator] = useState(false);
   const [isDashboardLoading, setIsDashboardLoading] = useState(true);
+  const [showPaymentForm, setShowPaymentForm] = useState(false);
+  const [newReading, setNewReading] = useState('');
+  const [isSubmittingReading, setIsSubmittingReading] = useState(false);
 
-  // Updated bill states
+  // Bill states
   const [currentBill, setCurrentBill] = useState({
     id: null,
     amountDue: 0,
@@ -37,13 +52,11 @@ export default function Dashboard() {
   });
   
   const [bills, setBills] = useState([]);
-  const [showPaymentForm, setShowPaymentForm] = useState(false);
-
+  const [payments, setPayments] = useState([]); // ADDED BACK - Payments state
   const [meterReadings, setMeterReadings] = useState([]);
   const [currentUsage, setCurrentUsage] = useState(0);
-  const [newReading, setNewReading] = useState('');
 
-  // --- Fetch dashboard & meter status ---
+  // --- Effect Hooks ---
   useEffect(() => {
     if (!loading && !isAuthenticated) {
       router.push('/');
@@ -55,27 +68,54 @@ export default function Dashboard() {
     }
   }, [user, loading, isAuthenticated, router]);
 
-  // --- Fetch dashboard data (UPDATED) ---
+  // Scroll to top to avoid navbar overlap
+  useEffect(() => {
+    if (!isDashboardLoading && dashboardTopRef.current) {
+      // Add padding to account for fixed navbar
+      document.body.style.paddingTop = '76px'; // Height of your navbar
+      
+      // Scroll to top with offset for navbar
+      window.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+      });
+    }
+    
+    return () => {
+      document.body.style.paddingTop = '0';
+    };
+  }, [isDashboardLoading]);
+
+  // --- API Functions ---
   const fetchDashboardData = async () => {
     try {
+      setIsDashboardLoading(true);
       const token = localStorage.getItem('token');
       
-      // Fetch bills from new API
-      const billsResponse = await fetch('/api/bills', {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      
+      // Fetch multiple data sources in parallel
+      const [billsResponse, usageResponse, programsResponse, outagesResponse] = await Promise.all([
+        fetch('/api/bills', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        }),
+        fetch('/api/usage', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        }),
+        fetch('/api/programs', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        }),
+        fetch('/api/outages/current', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        })
+      ]);
+
+      // Process bills data
       if (billsResponse.ok) {
         const billsData = await billsResponse.json();
-        
-        // New API structure: data.data.bills, data.data.currentBill
         const allBills = billsData.data?.bills || [];
         const currentBillData = billsData.data?.currentBill || null;
-        const summary = billsData.data?.summary || {};
         
         setBills(allBills);
         
-        // Set current bill
         if (currentBillData) {
           setCurrentBill({
             id: currentBillData._id,
@@ -88,32 +128,33 @@ export default function Dashboard() {
             status: currentBillData.status || 'generated',
             billingPeriod: currentBillData.billingPeriod || { start: null, end: null }
           });
-        } else {
-          // No current bill
-          setCurrentBill({
-            id: null,
-            amountDue: 0,
-            totalAmount: 0,
-            period: 'N/A',
-            dueDate: null,
-            billNumber: null,
-            status: null,
-            billingPeriod: { start: null, end: null }
-          });
         }
-
-        // Set dashboard data (programs, outages)
-        setDashboardData({
-          programs: billsData.programs || [],
-          outages: billsData.outages || []
-        });
       }
 
-      // Fetch usage data separately
-      await fetchUsageData(token);
-      
-      // Fetch additional dashboard data if needed
-      await fetchAdditionalDashboardData(token);
+      // Process usage data
+      if (usageResponse.ok) {
+        const usageData = await usageResponse.json();
+        const readings = usageData.data?.usage || usageData.data?.readings || [];
+        setMeterReadings(readings);
+        
+        if (readings.length > 0) {
+          const sortedReadings = [...readings].sort((a, b) => 
+            new Date(b.date || b.readingDate) - new Date(a.date || a.readingDate)
+          );
+          const latestReading = sortedReadings[0];
+          setCurrentUsage(latestReading.consumption || latestReading.usage || 0);
+        }
+      }
+
+      // Process programs and outages
+      const programs = programsResponse.ok ? await programsResponse.json() : {};
+      const outages = outagesResponse.ok ? await outagesResponse.json() : {};
+
+      setDashboardData({
+        programs: programs.data?.programs || programs.programs || [],
+        outages: outages.data?.outages || outages.outages || [],
+        usageData: readings
+      });
 
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
@@ -122,152 +163,64 @@ export default function Dashboard() {
     }
   };
 
-  // New function to fetch usage data
-  const fetchUsageData = async (token) => {
-    try {
-      const response = await fetch('/api/usage', {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      
-      if (response.ok) {
-        const data = await response.json();
-        const usageData = data.data?.usage || [];
-        setMeterReadings(usageData);
-        
-        if (usageData.length > 0) {
-          // Get latest consumption
-          const latestReading = usageData[0]; // Sorted by most recent
-          setCurrentUsage(latestReading.consumption || 0);
-        }
-      }
-    } catch (error) {
-      console.error('Error fetching usage:', error);
-    }
-  };
-
-  // New function for additional dashboard data
-  const fetchAdditionalDashboardData = async (token) => {
-    try {
-      // You can add other dashboard endpoints here
-      const [programsRes, outagesRes] = await Promise.all([
-        fetch('/api/programs', { headers: { 'Authorization': `Bearer ${token}` } }),
-        fetch('/api/outages/current', { headers: { 'Authorization': `Bearer ${token}` } })
-      ]);
-      
-      if (programsRes.ok) {
-        const programsData = await programsRes.json();
-        setDashboardData(prev => ({
-          ...prev,
-          programs: programsData.data?.programs || []
-        }));
-      }
-      
-      if (outagesRes.ok) {
-        const outagesData = await outagesRes.json();
-        setDashboardData(prev => ({
-          ...prev,
-          outages: outagesData.data?.outages || []
-        }));
-      }
-    } catch (error) {
-      console.error('Error fetching additional data:', error);
-    }
-  };
-
-  // --- Fetch meter status ---
   const fetchMeterStatus = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('/api/customer/meter/generate', {
+      const response = await fetch('/api/customer/meter/status', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
 
       if (response.ok) {
         const data = await response.json();
-        setMeterStatus(data);
-        setShowMeterGenerator(true);
+        setMeterStatus({
+          hasMeter: data.hasMeter || user?.meterNumber !== null,
+          currentRequest: data.currentRequest || null,
+          meterType: data.meterType || null,
+          meterNumber: data.meterNumber || user?.meterNumber
+        });
+        
+        // Show meter generator for new users without meters
+        if (!data.hasMeter && !data.currentRequest && !user?.meterNumber) {
+          setShowMeterGenerator(true);
+        }
       }
     } catch (error) {
       console.error('Error fetching meter status:', error);
-    }
-  };
-
-  // --- Handle meter generation completion ---
-  const handleMeterGenerated = () => {
-    setShowMeterGenerator(false);
-    fetchMeterStatus();
-    fetchDashboardData();
-  };
-
-  // --- Logout ---
-  const handleLogout = async () => {
-    await logout();
-    router.replace("/");
-  };
-
-  // --- Payment Form Handlers (UPDATED) ---
-  const openPaymentForm = () => {
-  // Always allow payment
-  setShowPaymentForm(true);
-};
-
-  
-  const closePaymentForm = () => setShowPaymentForm(false);
-  
- const handlePaymentSuccess = async (paymentData) => {
-  try {
-    const token = localStorage.getItem('token');
-
-    // If there is a bill with amount due → pay bill
-    if (currentBill?.id && currentBill.amountDue > 0) {
-      await fetch(`/api/bills/${currentBill.id}/pay`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          amount: paymentData.amount,
-          reference: paymentData.reference,
-        }),
-      });
-    } 
-    // No bill → fund wallet
-    else {
-      await fetch('/api/wallet/fund', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          amount: paymentData.amount,
-          reference: paymentData.reference,
-        }),
+      // Fallback to user data
+      setMeterStatus({
+        hasMeter: user?.meterNumber !== null,
+        currentRequest: null,
+        meterType: null,
+        meterNumber: user?.meterNumber
       });
     }
+  };
 
-    setShowPaymentForm(false);
-    fetchDashboardData();
-    alert('Payment successful!');
-  } catch (error) {
-    console.error(error);
-    alert('Payment completed but failed to update records.');
-  }
-};
-
-
-  // --- Submit Meter Reading (UPDATED) ---
-  const handleSubmitReadingClick = async () => {
+  // --- Meter Reading Submission ---
+  const handleSubmitReading = async () => {
     const readingValue = parseFloat(newReading);
+    
     if (isNaN(readingValue) || readingValue < 0) {
       alert('Please enter a valid reading');
       return;
     }
 
+    // Check if reading is realistic (not lower than previous readings)
+    if (meterReadings.length > 0) {
+      const latestReading = meterReadings[0];
+      const previousValue = latestReading.consumption || latestReading.usage;
+      if (readingValue < previousValue) {
+        if (!confirm(`Your reading (${readingValue} kWh) is lower than your last reading (${previousValue} kWh). Is this correct?`)) {
+          return;
+        }
+      }
+    }
+
+    setIsSubmittingReading(true);
+
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('/api/usage', {
+      const response = await fetch('/api/usage/submit', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -275,286 +228,357 @@ export default function Dashboard() {
         },
         body: JSON.stringify({
           reading: readingValue,
-          meterNumber: user?.meterNumber || 'N/A',
-          readingDate: new Date().toISOString()
+          meterNumber: meterStatus.meterNumber || user?.meterNumber,
+          readingDate: new Date().toISOString(),
+          notes: 'Customer submitted reading'
         })
       });
 
       if (response.ok) {
         const data = await response.json();
         setNewReading('');
-        // Refresh usage data
-        await fetchUsageData(token);
+        
+        // Add new reading to local state
+        const newReadingEntry = {
+          date: new Date().toISOString(),
+          usage: readingValue,
+          consumption: readingValue,
+          readingId: data.data?.readingId || Date.now()
+        };
+        
+        const updatedReadings = [newReadingEntry, ...meterReadings];
+        setMeterReadings(updatedReadings);
+        setCurrentUsage(readingValue);
+        
+        // Update dashboard data
+        setDashboardData(prev => ({
+          ...prev,
+          usageData: updatedReadings
+        }));
+        
         alert('Reading submitted successfully!');
+        
+        // Refresh usage data from server
+        await fetchDashboardData();
+        
+        // Scroll to meter reading section to show updated list
+        if (meterReadingRef.current) {
+          meterReadingRef.current.scrollIntoView({ 
+            behavior: 'smooth',
+            block: 'center'
+          });
+        }
       } else {
         const errorData = await response.json();
         alert(errorData.message || 'Failed to submit reading');
       }
     } catch (error) {
       console.error('Error submitting reading:', error);
-      alert('Error submitting reading');
+      alert('Error submitting reading. Please try again.');
+    } finally {
+      setIsSubmittingReading(false);
     }
   };
 
-  // --- Navigation handlers ---
-  const handleNavigateToBills = () => {
-    router.push('/bills');
+  // --- Event Handlers ---
+  const handleMeterGenerated = () => {
+    setShowMeterGenerator(false);
+    fetchMeterStatus();
+    fetchDashboardData();
   };
 
-  const handleNavigateToUsage = () => {
-    const usageSection = document.getElementById('usage-section');
-    if (usageSection) {
-      usageSection.scrollIntoView({ behavior: 'smooth' });
-      usageSection.focus();
+  const handleLogout = async () => {
+    await logout();
+    router.replace("/");
+  };
+
+  // --- PAYMENT CODE (RESTORED FROM YOUR ORIGINAL) ---
+  const openPaymentForm = () => {
+    setShowPaymentForm(true);
+  };
+
+  const closePaymentForm = () => setShowPaymentForm(false);
+  
+  const handlePay = async (paymentData) => {
+    try {
+      const token = localStorage.getItem('token');
+      
+      // If there is a bill with amount due → pay bill
+      if (currentBill?.id && currentBill.amountDue > 0) {
+        const response = await fetch(`/api/bills/${currentBill.id}/pay`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            amount: paymentData.amount,
+            reference: paymentData.reference || `PAY-${Date.now()}`,
+            method: paymentData.method || 'card'
+          }),
+        });
+        
+        if (!response.ok) {
+          throw new Error('Failed to process bill payment');
+        }
+      } 
+      // No bill → fund wallet
+      else {
+        const response = await fetch('/api/wallet/fund', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            amount: paymentData.amount,
+            reference: paymentData.reference || `FUND-${Date.now()}`,
+            method: paymentData.method || 'card'
+          }),
+        });
+        
+        if (!response.ok) {
+          throw new Error('Failed to fund wallet');
+        }
+      }
+      
+      // Update local payments state
+      const newPayment = {
+        id: Date.now(),
+        amount: paymentData.amount,
+        date: new Date().toISOString(),
+        reference: paymentData.reference || `PAY-${Date.now()}`,
+        status: 'completed',
+        type: currentBill?.id ? 'bill_payment' : 'wallet_topup'
+      };
+      
+      setPayments(prev => [...prev, newPayment]);
+      setShowPaymentForm(false);
+      
+      // Refresh dashboard data
+      await fetchDashboardData();
+      
+      alert('Payment successful!');
+    } catch (error) {
+      console.error('Payment error:', error);
+      alert('Payment completed but failed to update records.');
     }
   };
 
-  const handleNavigateToPrograms = () => {
-    router.push('/programs');
+  // --- Navigation Handlers ---
+  const handleNavigateToBills = () => router.push('/bills');
+  const handleNavigateToUsage = () => router.push('/usage');
+  const handleNavigateToPrograms = () => router.push('/programs');
+  const handleNavigateToOutages = () => router.push('/outages');
+  const handleNavigateToProfile = () => router.push('/profile');
+  const handleNavigateToMeterReadings = () => {
+    if (meterReadingRef.current) {
+      meterReadingRef.current.scrollIntoView({ 
+        behavior: 'smooth',
+        block: 'start'
+      });
+    }
   };
 
-  const handleNavigateToOutages = () => {
-    router.push('/outages');
-  };
-
-  // --- Loading ---
-  if (loading || isDashboardLoading) return (
-    <>
-      <Header />
-      <div 
-        className={styles.loadingContainer}
-        role="status"
-        aria-label="Loading dashboard content"
-      >
-        <div 
-          className="spinner-border text-primary" 
-          role="status"
-          aria-hidden="true"
-        >
-          <span className="visually-hidden">Loading...</span>
+  // --- Loading State ---
+  if (loading || isDashboardLoading) {
+    return (
+      <>
+        <Header />
+        <div className={styles.loadingContainer} style={{ paddingTop: '76px' }}>
+          <div className="spinner-border text-primary" role="status">
+            <span className="visually-hidden">Loading...</span>
+          </div>
+          <p className="mt-3">Loading your dashboard...</p>
         </div>
-        <p className="visually-hidden">Dashboard content is loading, please wait.</p>
-      </div>
-      <Footer />
-    </>
-  );
+        <Footer />
+      </>
+    );
+  }
 
   return (
     <>
       <Header />
-      <div className={styles.dashboard}>
+      
+      {/* Skip Navigation for Accessibility */}
+      <a href="#main-content" className="skip-to-main">
+        Skip to main content
+      </a>
 
-        {/* --- Always-available Meter Generator --- */}
-        <section className="section-padding" aria-labelledby="meter-generator-heading">
-          <div className="container mb-4">
-            <h2 id="meter-generator-heading" className="visually-hidden">Meter Generator</h2>
-            <button 
-              className="btn btn-primary"
-              onClick={() => setShowMeterGenerator(!showMeterGenerator)}
-              aria-expanded={showMeterGenerator}
-              aria-controls="meter-generator-section"
-            >
-              {meterStatus?.hasMeter ? "Generate New Meter" : "Generate Meter"}
-              <span className="visually-hidden">
-                {showMeterGenerator ? 'Hide meter generator form' : 'Show meter generator form'}
-              </span>
-            </button>
-          </div>
-          {showMeterGenerator && (
-            <div 
-              id="meter-generator-section"
-              aria-live="polite"
-              aria-relevant="additions"
-            >
-              <div className="container">
+      <main id="main-content" className={styles.dashboard} ref={dashboardTopRef}>
+        {/* Meter Generator Section - Fixed to handle navbar */}
+        <section className={styles.meterGeneratorSection} style={{ marginTop: '1rem' }}>
+          <div className="container">
+            <div className="d-flex justify-content-between align-items-center">
+              <div>
+                <h2 className={styles.sectionTitle}>Meter Management</h2>
+                <p className="text-muted mb-0">Manage your electricity meter and readings</p>
+              </div>
+              <button 
+                className={`btn ${showMeterGenerator ? 'btn-secondary' : 'btn-primary'}`}
+                onClick={() => setShowMeterGenerator(!showMeterGenerator)}
+                aria-expanded={showMeterGenerator}
+              >
+                <i className={`bi ${showMeterGenerator ? 'bi-x-lg' : 'bi-plus-lg'}`} />
+                {meterStatus.hasMeter ? "Generate New Meter" : "Get Started with a Meter"}
+              </button>
+            </div>
+            
+            {showMeterGenerator && (
+              <div className={styles.meterGeneratorContainer} style={{ marginTop: '1.5rem' }}>
                 <MeterGenerator 
                   onComplete={handleMeterGenerated} 
-                  hasMeter={meterStatus?.hasMeter} 
+                  hasMeter={meterStatus.hasMeter}
+                  currentRequest={meterStatus.currentRequest}
                 />
               </div>
-            </div>
-          )}
+            )}
+          </div>
         </section>
 
-        {/* --- Welcome Section --- */}
-        <section className={styles.welcomeSection} aria-label="Welcome and account information">
+        {/* Welcome Section */}
+        <section className={styles.welcomeSection} style={{ marginTop: '2rem' }}>
           <div className="container">
             <div className="row align-items-center">
-              <div className="col-md-8">
-                <h1>
-                  Welcome back, <span className="text-primary">{user?.firstName}</span>!
+              <div className="col-lg-8 col-md-6 mb-3 mb-md-0">
+                <h1 className={styles.welcomeTitle}>
+                  Welcome back, <span className="text-primary">{user?.firstName}!</span>
                 </h1>
-                <p className={styles.welcomeSubtitle}>
-                  <span className="visually-hidden">Account details: </span>
-                  Account: <strong>{user?.accountNumber}</strong> • 
-                  {user?.customerType?.charAt(0).toUpperCase() + user?.customerType?.slice(1)} Customer
-                  {user?.meterNumber && ` • Meter: ${user.meterNumber}`}
-                </p>
+                <div className={styles.welcomeDetails}>
+                  <span className={styles.detailItem}>
+                    <i className="bi bi-person-badge"></i>
+                    Account: <strong>{user?.accountNumber}</strong>
+                  </span>
+                  <span className={styles.detailItem}>
+                    <i className="bi bi-lightning-charge"></i>
+                    {user?.customerType?.charAt(0).toUpperCase() + user?.customerType?.slice(1)} Customer
+                  </span>
+                  {meterStatus.meterNumber && (
+                    <span className={styles.detailItem}>
+                      <i className="bi bi-speedometer2"></i>
+                      Meter: <strong>{meterStatus.meterNumber}</strong>
+                    </span>
+                  )}
+                </div>
               </div>
-              <div className="col-md-4 text-md-end">
-                <span 
-                  className={styles.statusBadge}
-                  role="status"
-                  aria-label="Account status: Active"
-                >
-                  <i className="bi bi-check-circle-fill me-1" aria-hidden="true"></i> Active
-                </span>
-                
-                <button 
-                  className="btn btn-danger mt-3 me-2" 
-                  onClick={handleLogout}
-                  aria-label="Logout from your account"
-                >
-                  <i className="bi bi-box-arrow-right me-2" aria-hidden="true"></i> Logout
-                </button>
-                <button
-                  className="btn btn-secondary mt-3"
-                  onClick={() => router.push('/profile')}
-                  aria-label="Go to your profile page"
-                >
-                  <i className="bi bi-person-circle me-2" aria-hidden="true"></i>
-                  Profile
-                </button>
+              
+              <div className="col-lg-4 col-md-6 text-md-end">
+                <div className="d-flex flex-column flex-md-row gap-2 justify-content-md-end">
+                  <span className={styles.statusBadge}>
+                    <i className="bi bi-check-circle-fill"></i>
+                    Account Active
+                  </span>
+                  <button 
+                    className="btn btn-outline-primary"
+                    onClick={handleNavigateToProfile}
+                  >
+                    <i className="bi bi-person-circle"></i>
+                    Profile
+                  </button>
+                  <button 
+                    className="btn btn-danger"
+                    onClick={handleLogout}
+                  >
+                    <i className="bi bi-box-arrow-right"></i>
+                    Logout
+                  </button>
+                </div>
               </div>
             </div>
           </div>
         </section>
 
-        {/* --- Meter Status Banner --- */}
-        {meterStatus && (
-          <div 
-            className={styles.meterStatusBanner}
-            role="region"
-            aria-label="Meter status information"
-          >
-            {meterStatus.currentRequest ? (
-              <div 
-                className={`${styles.statusAlert} ${styles.statusPending}`}
-                role="alert"
-                aria-live="polite"
-              >
-                <i className="bi bi-clock-history" aria-hidden="true"></i>
-                <div className={styles.statusContent}>
-                  <strong>Meter Installation Scheduled</strong>
-                  <p>
-                    Your {meterStatus.meterType} meter is scheduled for installation on{' '}
-                    {new Date(meterStatus.currentRequest.estimatedInstallationDate).toLocaleDateString()}
-                  </p>
-                  <small>Request ID: {meterStatus.currentRequest.requestId}</small>
+        {/* Meter Status Banner */}
+        {meterStatus.currentRequest && (
+          <section className={styles.meterStatusBanner}>
+            <div className="container">
+              <div className={`alert alert-warning ${styles.statusAlert}`}>
+                <div className="d-flex align-items-center">
+                  <i className="bi bi-clock-history fs-4 me-3"></i>
+                  <div className="flex-grow-1">
+                    <h6 className="mb-1">Meter Installation Scheduled</h6>
+                    <p className="mb-0">
+                      Your {meterStatus.meterType} meter installation is scheduled for{' '}
+                      {new Date(meterStatus.currentRequest.estimatedInstallationDate).toLocaleDateString()}
+                    </p>
+                    <small className="text-muted">Request ID: {meterStatus.currentRequest.requestId}</small>
+                  </div>
+                  <button className="btn btn-sm btn-outline-warning">
+                    View Details
+                  </button>
                 </div>
-                <button 
-                  className={styles.statusButton}
-                  aria-label="View details of scheduled meter installation"
-                >
-                  View Details
-                </button>
               </div>
-            ) : meterStatus.hasMeter ? (
-              <div 
-                className={`${styles.statusAlert} ${styles.statusActive}`}
-                role="status"
-                aria-live="polite"
-              >
-                <i className="bi bi-check-circle" aria-hidden="true"></i>
-                <div className={styles.statusContent}>
-                  <strong>Meter Active</strong>
-                  <p>
-                    Your {meterStatus.meterType} meter ({user?.meterNumber || 'N/A'}) is active and recording usage
-                  </p>
-                  <small>
-                    Next reading: {user?.nextMeterReadingDate ? new Date(user.nextMeterReadingDate).toLocaleDateString() : 'Not scheduled'}
-                  </small>
-                </div>
-                <button 
-                  className={styles.statusButton}
-                  onClick={() => router.push('/usage')}
-                  aria-label="View meter readings history"
-                >
-                  View Readings
-                </button>
-              </div>
-            ) : null}
-          </div>
+            </div>
+          </section>
         )}
 
-        {/* --- Quick Stats (UPDATED) --- */}
-        <section
-          className="section-padding"
-          aria-label="Quick statistics overview"
-          role="region"
-        >
+        {/* Quick Stats Grid - Responsive */}
+        <section className={styles.statsSection}>
           <div className="container">
-            <h2 className="visually-hidden">Quick Statistics</h2>
-
-            <div className="row">
-              {/* Bill Card - UPDATED */}
-              <div className="col-md-3 col-6 mb-4">
-                <div
-                  className={`${styles.statCard} ${styles.clickableStatCard}`}
+            <h2 className={styles.sectionTitle}>Quick Overview</h2>
+            
+            <div className="row g-3">
+              {/* Current Bill */}
+              <div className="col-xl-3 col-lg-4 col-md-6 col-sm-6">
+                <div 
+                  className={`${styles.statCard} ${styles.clickableCard}`}
                   onClick={handleNavigateToBills}
                   role="button"
                   tabIndex={0}
-                  onKeyPress={(e) => e.key === 'Enter' && handleNavigateToBills()}
-                  aria-label={`View bill details. Amount: ₦${currentBill.amountDue.toFixed(2)}, Period: ${currentBill.period}`}
                 >
-                  <div className={styles.statIcon} aria-hidden="true">
+                  <div className={styles.statIconContainer}>
                     <i className="bi bi-receipt"></i>
                   </div>
-
                   <div className={styles.statContent}>
-                    <span className="visually-hidden">Current Bill Amount</span>
-                    <h3 aria-hidden="true">₦{currentBill.amountDue.toFixed(2)}</h3>
+                    <h3>₦{currentBill.amountDue.toLocaleString()}</h3>
                     <p>Current Bill</p>
-                    <small>Due: {currentBill.dueDate?.toLocaleDateString() || "N/A"}</small>
+                    <small>
+                      {currentBill.dueDate ? 
+                        `Due: ${currentBill.dueDate.toLocaleDateString()}` : 
+                        'No bill due'
+                      }
+                    </small>
                     {currentBill.billNumber && (
                       <small className="d-block">#{currentBill.billNumber}</small>
                     )}
                   </div>
-
-                  <div className={styles.statArrow} aria-hidden="true">
+                  <div className={styles.statArrow}>
                     <i className="bi bi-chevron-right"></i>
                   </div>
                 </div>
               </div>
 
-              {/* Usage Card - UPDATED */}
-              <div className="col-md-3 col-6 mb-4">
-                <div
-                  className={`${styles.statCard} ${styles.clickableStatCard}`}
+              {/* Current Usage */}
+              <div className="col-xl-3 col-lg-4 col-md-6 col-sm-6">
+                <div 
+                  className={`${styles.statCard} ${styles.clickableCard}`}
                   onClick={handleNavigateToUsage}
                   role="button"
                   tabIndex={0}
-                  onKeyPress={(e) => e.key === 'Enter' && handleNavigateToUsage()}
-                  aria-label={`View usage details. Current usage: ${currentUsage.toFixed(0)} kilowatt hours`}
                 >
-                  <div className={styles.statIcon} aria-hidden="true">
-                    <i className="bi bi-lightning"></i>
+                  <div className={styles.statIconContainer}>
+                    <i className="bi bi-lightning-charge"></i>
                   </div>
-
                   <div className={styles.statContent}>
-                    <span className="visually-hidden">Current Usage</span>
-                    <h3 aria-hidden="true">{currentUsage.toFixed(0)} kWh</h3>
-                    <p>Usage</p>
-                    <small>Current Month</small>
+                    <h3>{currentUsage.toLocaleString()} kWh</h3>
+                    <p>Current Usage</p>
+                    <small>Latest reading</small>
                   </div>
-
-                  <div className={styles.statArrow} aria-hidden="true">
+                  <div className={styles.statArrow}>
                     <i className="bi bi-chevron-right"></i>
                   </div>
                 </div>
               </div>
 
-              {/* Bill Status Card - NEW */}
-              <div className="col-md-3 col-6 mb-4">
-                <div
-                  className={`${styles.statCard} ${styles.clickableStatCard}`}
+              {/* Bill Status */}
+              <div className="col-xl-3 col-lg-4 col-md-6 col-sm-6">
+                <div 
+                  className={`${styles.statCard} ${styles.clickableCard}`}
                   onClick={handleNavigateToBills}
                   role="button"
                   tabIndex={0}
-                  onKeyPress={(e) => e.key === 'Enter' && handleNavigateToBills()}
-                  aria-label={`View bill status. Status: ${currentBill.status || 'No bill'}`}
                 >
-                  <div className={styles.statIcon} aria-hidden="true">
+                  <div className={styles.statIconContainer}>
                     <i className={`bi ${
                       currentBill.status === 'paid' ? 'bi-check-circle text-success' :
                       currentBill.status === 'overdue' ? 'bi-exclamation-circle text-danger' :
@@ -562,47 +586,40 @@ export default function Dashboard() {
                       currentBill.status ? 'bi-clock text-info' : 'bi-file-x text-secondary'
                     }`}></i>
                   </div>
-
                   <div className={styles.statContent}>
-                    <span className="visually-hidden">Bill Status</span>
-                    <h3 aria-hidden="true">
+                    <h3>
                       {currentBill.status ? 
-                        currentBill.status.charAt(0).toUpperCase() + currentBill.status.slice(1).replace('_', ' ') : 
+                        currentBill.status.charAt(0).toUpperCase() + 
+                        currentBill.status.slice(1).replace('_', ' ') : 
                         'No Bill'
                       }
                     </h3>
-                    <p>Status</p>
-                    <small>Current Bill</small>
+                    <p>Bill Status</p>
+                    <small>Current bill status</small>
                   </div>
-
-                  <div className={styles.statArrow} aria-hidden="true">
+                  <div className={styles.statArrow}>
                     <i className="bi bi-chevron-right"></i>
                   </div>
                 </div>
               </div>
 
-              {/* Programs Card */}
-              <div className="col-md-3 col-6 mb-4">
-                <div
-                  className={`${styles.statCard} ${styles.clickableStatCard}`}
+              {/* Available Programs */}
+              <div className="col-xl-3 col-lg-4 col-md-6 col-sm-6">
+                <div 
+                  className={`${styles.statCard} ${styles.clickableCard}`}
                   onClick={handleNavigateToPrograms}
                   role="button"
                   tabIndex={0}
-                  onKeyPress={(e) => e.key === 'Enter' && handleNavigateToPrograms()}
-                  aria-label={`View energy programs. ${dashboardData.programs.length} programs available`}
                 >
-                  <div className={styles.statIcon} aria-hidden="true">
+                  <div className={styles.statIconContainer}>
                     <i className="bi bi-gift"></i>
                   </div>
-
                   <div className={styles.statContent}>
-                    <span className="visually-hidden">Available Programs</span>
-                    <h3 aria-hidden="true">{dashboardData.programs.length}</h3>
-                    <p>Programs</p>
-                    <small>Available</small>
+                    <h3>{dashboardData.programs.length}</h3>
+                    <p>Available Programs</p>
+                    <small>Energy programs</small>
                   </div>
-
-                  <div className={styles.statArrow} aria-hidden="true">
+                  <div className={styles.statArrow}>
                     <i className="bi bi-chevron-right"></i>
                   </div>
                 </div>
@@ -611,332 +628,586 @@ export default function Dashboard() {
           </div>
         </section>
 
-        {/* --- Meter Reading Section --- */}
-        {user?.meterNumber && (
-          <section 
-            className={styles.meterReadingsSection}
-            aria-labelledby="meter-reading-heading"
-            role="region"
-          >
-            <div className="container">
-              <h3 id="meter-reading-heading">Submit Meter Reading</h3>
-              <div className={styles.readingForm}>
-                <label htmlFor="meter-reading-input" className="form-label">
-                  Enter current meter reading (kWh)
-                </label>
-                <input
-                  id="meter-reading-input"
-                  type="number"
-                  min={0}
-                  step="0.01"
-                  placeholder="Enter current reading (kWh)"
-                  value={newReading}
-                  onChange={(e) => setNewReading(e.target.value)}
-                  className="form-control mb-2"
-                  aria-describedby="meter-reading-help"
-                />
-                <small id="meter-reading-help" className="form-text text-muted">
-                  Enter the current reading from your meter in kilowatt hours
-                </small>
-                <button
-                  className="btn btn-success mt-2"
-                  onClick={handleSubmitReadingClick}
-                  aria-label="Submit meter reading"
-                  disabled={!newReading || parseFloat(newReading) <= 0}
-                >
-                  <i className="bi bi-check-circle me-2" aria-hidden="true"></i>
-                  Submit Reading
-                </button>
-              </div>
-            </div>
-          </section>
-        )}
-
-        {/* --- Usage Chart --- */}
-        {meterReadings.length > 0 && (
-          <section 
-            className={styles.sectionPadding} 
-            id="usage-section"
-            aria-labelledby="usage-chart-heading"
-            role="region"
-            tabIndex={-1}
-          >
-            <div className="container">
-              <h3 id="usage-chart-heading">Energy Usage</h3>
-              <UsageChart readings={meterReadings} />
-              <button 
-                className="btn btn-outline-primary mt-3"
-                onClick={() => router.push('/usage')}
-                aria-label="View detailed usage history"
-              >
-                <i className="bi bi-graph-up me-2" aria-hidden="true"></i>
-                View Full Usage History
-              </button>
-            </div>
-          </section>
-        )}
-
-        {/* --- Payment Section (UPDATED) --- */}
-        <section 
-          className="section-padding" 
-          id="bills-section"
-          aria-labelledby="payment-heading"
-          role="region"
-          tabIndex={-1}
-        >
-          <div className="container">
-            <h2 id="payment-heading" className="section-title mb-4">
-              {currentBill.billNumber ? `Bill #${currentBill.billNumber}` : 'Billing & Payments'}
-            </h2>
-            
-            {currentBill.id ? (
-              <>
-                {/* Current Bill Card */}
-                <div className="card mb-4 shadow-sm">
-                  <div className="card-body">
-                    <div className="row align-items-center">
-                      <div className="col-md-8">
-                        <h5 className="card-title">Current Bill Details</h5>
-                        <div className="row">
-                          <div className="col-6">
-                            <p className="card-text mb-1">
-                              <strong>Billing Period:</strong><br/>
-                              {currentBill.period}
-                            </p>
-                            <p className="card-text mb-1">
-                              <strong>Due Date:</strong><br/>
-                              {currentBill.dueDate ? currentBill.dueDate.toLocaleDateString() : 'N/A'}
-                            </p>
+        {/* Main Content Grid - Responsive */}
+        <div className="container-fluid">
+          <div className="row g-4">
+            {/* Left Column - Meter Reading & Usage Chart */}
+            <div className="col-lg-8">
+              {/* Meter Reading Form */}
+              {meterStatus.hasMeter && meterStatus.meterNumber && (
+                <section className={styles.meterReadingSection} ref={meterReadingRef}>
+                  <div className="card h-100">
+                    <div className="card-body">
+                      <h5 className="card-title d-flex align-items-center">
+                        <i className="bi bi-pencil-square me-2"></i>
+                        Submit Meter Reading
+                      </h5>
+                      
+                      <div className="row g-3 align-items-end">
+                        <div className="col-md-6">
+                          <label htmlFor="meterReading" className="form-label">
+                            Current Reading (kWh)
+                          </label>
+                          <div className="input-group">
+                            <input
+                              type="number"
+                              id="meterReading"
+                              className="form-control"
+                              placeholder="Enter current meter reading"
+                              value={newReading}
+                              onChange={(e) => setNewReading(e.target.value)}
+                              min="0"
+                              step="0.01"
+                              disabled={isSubmittingReading}
+                            />
+                            <span className="input-group-text">kWh</span>
                           </div>
-                          <div className="col-6">
-                            <p className="card-text mb-1">
-                              <strong>Total Amount:</strong><br/>
-                              ₦{currentBill.totalAmount.toFixed(2)}
-                            </p>
-                            <p className="card-text mb-1">
-                              <strong>Status:</strong><br/>
-                              <span className={`badge ${
-                                currentBill.status === 'paid' ? 'bg-success' :
-                                currentBill.status === 'overdue' ? 'bg-danger' :
-                                currentBill.status === 'partially_paid' ? 'bg-warning' :
-                                'bg-info'
-                              }`}>
-                                {currentBill.status ? 
-                                  currentBill.status.charAt(0).toUpperCase() + currentBill.status.slice(1).replace('_', ' ') : 
-                                  'Generated'
+                          <div className="form-text">
+                            Enter the exact number from your meter display
+                          </div>
+                        </div>
+                        
+                        <div className="col-md-6">
+                          <div className="d-grid gap-2">
+                            <button
+                              className="btn btn-success"
+                              onClick={handleSubmitReading}
+                              disabled={!newReading || parseFloat(newReading) <= 0 || isSubmittingReading}
+                            >
+                              {isSubmittingReading ? (
+                                <>
+                                  <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                                  Submitting...
+                                </>
+                              ) : (
+                                <>
+                                  <i className="bi bi-check-circle me-2"></i>
+                                  Submit Reading
+                                </>
+                              )}
+                            </button>
+                            <button
+                              className="btn btn-outline-secondary"
+                              onClick={() => {
+                                // Pre-fill with last reading + estimated usage
+                                if (meterReadings.length > 0) {
+                                  const latest = meterReadings[0];
+                                  const lastReading = latest.consumption || latest.usage;
+                                  const estimatedUsage = 50; // Default estimate
+                                  setNewReading((lastReading + estimatedUsage).toString());
                                 }
-                              </span>
-                            </p>
+                              }}
+                              disabled={meterReadings.length === 0 || isSubmittingReading}
+                            >
+                              <i className="bi bi-calculator me-2"></i>
+                              Estimate Next Reading
+                            </button>
                           </div>
                         </div>
                       </div>
-                      <div className="col-md-4 text-md-end">
-                        <div className="mb-3">
-                          <h3 className={`display-6 ${currentBill.amountDue > 0 ? 'text-danger' : 'text-success'}`}>
-                            ₦{currentBill.amountDue.toFixed(2)}
-                          </h3>
-                          <p className="text-muted">Amount Due</p>
+                      
+                      {meterReadings.length > 0 && (
+                        <div className="mt-4">
+                          <div className="d-flex justify-content-between align-items-center mb-2">
+                            <h6>Latest Readings</h6>
+                            <div className="d-flex gap-2">
+                              <button 
+                                className="btn btn-sm btn-outline-secondary"
+                                onClick={() => {
+                                  const lastReading = meterReadings[0];
+                                  setNewReading((lastReading.consumption || lastReading.usage).toString());
+                                }}
+                              >
+                                <i className="bi bi-arrow-clockwise me-1"></i>
+                                Use Last Reading
+                              </button>
+                              <button 
+                                className="btn btn-sm btn-outline-primary"
+                                onClick={handleNavigateToUsage}
+                              >
+                                View All
+                              </button>
+                            </div>
+                          </div>
+                          <div className="list-group list-group-flush">
+                            {meterReadings.slice(0, 5).map((reading, index) => (
+                              <div key={reading.readingId || index} className="list-group-item">
+                                <div className="d-flex justify-content-between align-items-center">
+                                  <div>
+                                    <span className="fw-medium">
+                                      {new Date(reading.date || reading.readingDate).toLocaleDateString('en-US', {
+                                        weekday: 'short',
+                                        month: 'short',
+                                        day: 'numeric'
+                                      })}
+                                    </span>
+                                    <small className="text-muted ms-2">
+                                      {new Date(reading.date || reading.readingDate).toLocaleTimeString('en-US', {
+                                        hour: '2-digit',
+                                        minute: '2-digit'
+                                      })}
+                                    </small>
+                                  </div>
+                                  <div>
+                                    <span className="fw-bold fs-6">
+                                      {reading.usage || reading.consumption} kWh
+                                    </span>
+                                    {index > 0 && meterReadings[index - 1] && (
+                                      <small className={`ms-2 ${(reading.consumption || reading.usage) > (meterReadings[index - 1].consumption || meterReadings[index - 1].usage) ? 'text-success' : 'text-danger'}`}>
+                                        <i className={`bi ${(reading.consumption || reading.usage) > (meterReadings[index - 1].consumption || meterReadings[index - 1].usage) ? 'bi-arrow-up' : 'bi-arrow-down'}`}></i>
+                                        {Math.abs((reading.consumption || reading.usage) - (meterReadings[index - 1].consumption || meterReadings[index - 1].usage))} kWh
+                                      </small>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
                         </div>
-                        <button 
-  className="btn btn-primary btn-lg w-100"
-  onClick={openPaymentForm}
->
-  {currentBill?.id ? 'Pay Bill' : 'Fund Wallet'}
-</button>
+                      )}
+                      
+                      {/* Quick Tips */}
+                      <div className="alert alert-info mt-3">
+                        <h6 className="alert-heading mb-2">
+                          <i className="bi bi-lightbulb me-2"></i>
+                          Reading Tips
+                        </h6>
+                        <ul className="mb-0 ps-3">
+                          <li>Read the numbers from left to right on your meter display</li>
+                          <li>Ignore any red numbers or numbers after a decimal point</li>
+                          <li>Submit your reading on the same day each month for consistency</li>
+                          <li>If your meter has multiple displays, use the one labeled "kWh"</li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                </section>
+              )}
 
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                
-                {/* Action Buttons */}
-                <div className="d-flex flex-wrap gap-2 mb-4">
-                  <button 
-                    className="btn btn-outline-primary"
-                    onClick={() => router.push('/bills')}
-                    aria-label="View all bills and payment history"
-                  >
-                    <i className="bi bi-list-ul me-2" aria-hidden="true"></i> View All Bills
-                  </button>
-                  <button 
-                    className="btn btn-outline-secondary"
-                    onClick={() => {
-                      // Generate PDF invoice
-                      window.open(`/api/bills/${currentBill.id}/invoice`, '_blank');
-                    }}
-                    aria-label="Download invoice PDF"
-                  >
-                    <i className="bi bi-download me-2" aria-hidden="true"></i> Download Invoice
-                  </button>
-                  <button 
-                    className="btn btn-outline-info"
-                    onClick={() => {
-                      // View payment history
-                      router.push('/bills?tab=payments');
-                    }}
-                    aria-label="View payment history"
-                  >
-                    <i className="bi bi-clock-history me-2" aria-hidden="true"></i> Payment History
-                  </button>
-                </div>
-                
-                {/* Payment Form Modal */}
-                {showPaymentForm && (
-                  <div 
-                    role="dialog"
-                    aria-labelledby="payment-form-title"
-                    aria-modal="true"
-                    className="modal show d-block"
-                    style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}
-                  >
-                    <div className="modal-dialog modal-dialog-centered">
-                      <div className="modal-content">
-                        <div className="modal-header">
-                          <h5 className="modal-title" id="payment-form-title">
-                            Pay Bill #{currentBill.billNumber}
-                          </h5>
+              {/* Usage Chart */}
+              {meterReadings.length > 1 && (
+                <section className={styles.usageChartSection}>
+                  <div className="card h-100">
+                    <div className="card-body">
+                      <div className="d-flex justify-content-between align-items-center mb-4">
+                        <h5 className="card-title m-0">Energy Usage Trend</h5>
+                        <div className="dropdown">
                           <button 
-                            type="button" 
-                            className="btn-close" 
-                            onClick={closePaymentForm}
-                            aria-label="Close"
-                          ></button>
+                            className="btn btn-sm btn-outline-secondary dropdown-toggle"
+                            type="button"
+                            data-bs-toggle="dropdown"
+                          >
+                            Last 30 days
+                          </button>
+                          <ul className="dropdown-menu">
+                            <li><button className="dropdown-item">Last 7 days</button></li>
+                            <li><button className="dropdown-item">Last 30 days</button></li>
+                            <li><button className="dropdown-item">Last 90 days</button></li>
+                            <li><button className="dropdown-item">Last 12 months</button></li>
+                          </ul>
                         </div>
-                        <div className="modal-body">
-                          <PaymentForm 
-                            bill={currentBill} 
-                            onClose={closePaymentForm} 
-                            onSubmit={handlePaymentSuccess} 
-                          />
-                        </div>
+                      </div>
+                      <UsageChart readings={meterReadings} />
+                      <div className="mt-3 text-center">
+                        <button 
+                          className="btn btn-outline-primary me-2"
+                          onClick={handleNavigateToUsage}
+                        >
+                          <i className="bi bi-graph-up me-2"></i>
+                          View Detailed Usage Analysis
+                        </button>
+                        <button 
+                          className="btn btn-outline-success"
+                          onClick={handleNavigateToMeterReadings}
+                        >
+                          <i className="bi bi-pencil-square me-2"></i>
+                          Submit New Reading
+                        </button>
                       </div>
                     </div>
                   </div>
-                )}
-              </>
-            ) : (
-              /* No Bill State */
-              <div className="card border-info mb-4">
-                <div className="card-body text-center">
-                  <i className="bi bi-info-circle display-4 text-info mb-3" aria-hidden="true"></i>
-                  <h5 className="card-title">No Current Bill</h5>
-                  <p className="card-text">
-                    You don't have any bills at the moment. Your next bill will be generated at the end of your billing cycle.
-                  </p>
-                  <button 
-                    className="btn btn-outline-primary"
-                    onClick={() => router.push('/bills')}
-                    aria-label="View billing history"
-                  >
-                    <i className="bi bi-receipt me-2" aria-hidden="true"></i> View Billing History
-                  </button>
-                </div>
-              </div>
-            )}
-            
-            {/* Recent Bills */}
-            <div aria-live="polite" aria-atomic="true">
-              <div className="d-flex justify-content-between align-items-center mb-3">
-                <h4>Recent Bills</h4>
-                <button 
-                  className="btn btn-link"
-                  onClick={() => router.push('/bills')}
-                  aria-label="View all bills"
-                >
-                  View All <i className="bi bi-arrow-right" aria-hidden="true"></i>
-                </button>
-              </div>
-              
-              {bills.length > 0 ? (
-                <div className="list-group">
-                  {bills.slice(0, 5).map((bill) => (
-                    <div 
-                      key={bill._id} 
-                      className="list-group-item list-group-item-action"
-                      onClick={() => router.push(`/bills/${bill._id}`)}
-                      role="button"
-                      tabIndex={0}
-                      onKeyPress={(e) => e.key === 'Enter' && router.push(`/bills/${bill._id}`)}
-                      aria-label={`View bill ${bill.billNumber} details`}
-                    >
-                      <div className="d-flex w-100 justify-content-between align-items-center">
-                        <div>
-                          <h6 className="mb-1">Bill #{bill.billNumber}</h6>
-                          <small className="text-muted">
-                            {new Date(bill.billingPeriod?.start).toLocaleDateString()} - {new Date(bill.billingPeriod?.end).toLocaleDateString()}
-                          </small>
-                        </div>
-                        <div className="text-end">
-                          <h6 className="mb-1 text-primary">₦{bill.totalAmount?.toFixed(2)}</h6>
-                          <small className={`badge ${
-                            bill.status === 'paid' ? 'bg-success' : 
-                            bill.status === 'overdue' ? 'bg-danger' : 
-                            'bg-warning'
-                          }`}>
-                            {bill.status}
-                          </small>
-                        </div>
-                      </div>
-                      <div className="d-flex justify-content-between mt-2">
-                        <small>Due: {new Date(bill.dueDate).toLocaleDateString()}</small>
-                        <small>Amount Due: ₦{bill.amountDue?.toFixed(2)}</small>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="alert alert-light text-center" role="alert">
-                  <i className="bi bi-receipt display-6 text-muted mb-3" aria-hidden="true"></i>
-                  <p className="mb-0">No bills found.</p>
-                </div>
+                </section>
               )}
             </div>
-          </div>
-        </section>
 
-          {/* --- Payment Section --- */}
+            {/* Right Column - Payment & Quick Actions */}
+            <div className="col-lg-4">
+              {/* Payment Section */}
+              <section className={styles.paymentSection}>
+                <div className="card h-100">
+                  <div className="card-body">
+                    <h5 className="card-title d-flex align-items-center">
+                      <i className="bi bi-credit-card me-2"></i>
+                      Quick Payment
+                    </h5>
+                    
+                    {currentBill.id ? (
+                      <>
+                        <div className={styles.billSummary}>
+                          <div className="d-flex justify-content-between mb-2">
+                            <span>Amount Due:</span>
+                            <span className="fw-bold fs-5 text-primary">
+                              ₦{currentBill.amountDue.toLocaleString()}
+                            </span>
+                          </div>
+                          <div className="d-flex justify-content-between mb-2">
+                            <span>Due Date:</span>
+                            <span className={currentBill.dueDate && currentBill.dueDate < new Date() ? 'text-danger fw-bold' : ''}>
+                              {currentBill.dueDate ? currentBill.dueDate.toLocaleDateString() : 'N/A'}
+                            </span>
+                          </div>
+                          <div className="d-flex justify-content-between mb-3">
+                            <span>Status:</span>
+                            <span className={`badge ${
+                              currentBill.status === 'paid' ? 'bg-success' :
+                              currentBill.status === 'overdue' ? 'bg-danger' :
+                              currentBill.status === 'partially_paid' ? 'bg-warning' :
+                              'bg-info'
+                            }`}>
+                              {currentBill.status?.replace('_', ' ') || 'Pending'}
+                            </span>
+                          </div>
+                        </div>
+                        
+                        <div className="d-grid gap-2">
+                          <button 
+                            className="btn btn-primary btn-lg"
+                            onClick={openPaymentForm}
+                          >
+                            <i className="bi bi-lightning-charge me-2"></i>
+                            Pay Now
+                          </button>
+                          <button 
+                            className="btn btn-outline-secondary"
+                            onClick={handleNavigateToBills}
+                          >
+                            View All Bills
+                          </button>
+                        </div>
+                      </>
+                    ) : (
+                      <div className="text-center py-4">
+                        <i className="bi bi-receipt display-4 text-muted mb-3"></i>
+                        <p className="text-muted">No bills at the moment</p>
+                        <button 
+                          className="btn btn-outline-primary"
+                          onClick={openPaymentForm}
+                        >
+                          <i className="bi bi-wallet2 me-2"></i>
+                          Fund Wallet
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </section>
+
+              {/* Quick Actions */}
+              <section className={styles.quickActionsSection}>
+                <div className="card h-100">
+                  <div className="card-body">
+                    <h5 className="card-title">Quick Actions</h5>
+                    <div className="d-grid gap-2">
+                      <button 
+                        className="btn btn-outline-primary d-flex align-items-center justify-content-between"
+                        onClick={handleNavigateToBills}
+                      >
+                        <span>View Bills & History</span>
+                        <i className="bi bi-chevron-right"></i>
+                      </button>
+                      <button 
+                        className="btn btn-outline-primary d-flex align-items-center justify-content-between"
+                        onClick={handleNavigateToUsage}
+                      >
+                        <span>Usage Details</span>
+                        <i className="bi bi-chevron-right"></i>
+                      </button>
+                      {meterStatus.hasMeter && (
+                        <button 
+                          className="btn btn-outline-primary d-flex align-items-center justify-content-between"
+                          onClick={handleNavigateToMeterReadings}
+                        >
+                          <span>Submit Meter Reading</span>
+                          <i className="bi bi-chevron-right"></i>
+                        </button>
+                      )}
+                      <button 
+                        className="btn btn-outline-primary d-flex align-items-center justify-content-between"
+                        onClick={handleNavigateToPrograms}
+                      >
+                        <span>Energy Programs</span>
+                        <i className="bi bi-chevron-right"></i>
+                      </button>
+                      <button 
+                        className="btn btn-outline-primary d-flex align-items-center justify-content-between"
+                        onClick={handleNavigateToOutages}
+                      >
+                        <span>Outage Reports</span>
+                        <i className="bi bi-chevron-right"></i>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </section>
+            </div>
+          </div>
+        </div>
+
+        {/* PAYMENT SECTION (YOUR ORIGINAL CODE RESTORED) */}
         <section className="section-padding">
           <div className="container">
             <h2 className="section-title mb-4">Make a Payment</h2>
             <button className="btn btn-primary mb-3" onClick={openPaymentForm}>
               <i className="bi bi-credit-card me-2"></i> Pay Now
             </button>
-            {showPaymentForm && <PaymentForm bill={currentBill} onClose={closePaymentForm} onSubmit={handlePaymentSuccess}
- />}
-          <BillList bills={bills} />
-
-
+            {showPaymentForm && (
+              <PaymentForm 
+                bill={currentBill} 
+                onClose={closePaymentForm} 
+                onSubmit={handlePay}
+              />
+            )}
+            <BillList bills={bills} />
           </div>
         </section>
 
-        {/* Skip to main content link for keyboard users */}
-        <a 
-          href="#main-content" 
-          className="visually-hidden-focusable"
-          style={{
-            position: 'absolute',
-            top: '-40px',
-            left: '10px',
-            background: '#0d6efd',
-            color: 'white',
-            padding: '8px',
-            zIndex: 1000,
-            textDecoration: 'none'
-          }}
-          onFocus={() => {
-            const element = document.querySelector('[style*="top: -40px"]');
-            if (element) element.style.top = '10px';
-          }}
-          onBlur={() => {
-            const element = document.querySelector('[style*="top: 10px"]');
-            if (element) element.style.top = '-40px';
-          }}
-        >
-          Skip to main content
-        </a>
+        {/* Recent Bills Section */}
+        <section className={styles.recentBillsSection}>
+          <div className="container">
+            <div className="d-flex justify-content-between align-items-center mb-4">
+              <h2 className={styles.sectionTitle}>Recent Bills</h2>
+              <button 
+                className="btn btn-link text-decoration-none"
+                onClick={handleNavigateToBills}
+              >
+                View All <i className="bi bi-arrow-right"></i>
+              </button>
+            </div>
+            
+            {bills.length > 0 ? (
+              <div className="row g-3">
+                {bills.slice(0, 4).map((bill) => (
+                  <div key={bill._id} className="col-lg-3 col-md-6">
+                    <div 
+                      className={`card ${styles.billCard} ${styles.clickableCard}`}
+                      onClick={() => router.push(`/bills/${bill._id}`)}
+                      role="button"
+                      tabIndex={0}
+                    >
+                      <div className="card-body">
+                        <div className="d-flex justify-content-between align-items-start mb-3">
+                          <div>
+                            <h6 className="card-subtitle text-muted">Bill #{bill.billNumber}</h6>
+                            <small className="text-muted">
+                              {new Date(bill.billingPeriod?.start).toLocaleDateString()} -{' '}
+                              {new Date(bill.billingPeriod?.end).toLocaleDateString()}
+                            </small>
+                          </div>
+                          <span className={`badge ${
+                            bill.status === 'paid' ? 'bg-success' : 
+                            bill.status === 'overdue' ? 'bg-danger' : 
+                            'bg-warning'
+                          }`}>
+                            {bill.status}
+                          </span>
+                        </div>
+                        
+                        <div className="mb-3">
+                          <div className="d-flex justify-content-between mb-1">
+                            <span>Total Amount:</span>
+                            <span className="fw-bold">₦{bill.totalAmount?.toLocaleString()}</span>
+                          </div>
+                          <div className="d-flex justify-content-between">
+                            <span>Amount Due:</span>
+                            <span className={`${bill.amountDue > 0 ? 'text-danger fw-bold' : 'text-success'}`}>
+                              ₦{bill.amountDue?.toLocaleString()}
+                            </span>
+                          </div>
+                        </div>
+                        
+                        <div className="text-center">
+                          <small className="text-muted">
+                            Due: {new Date(bill.dueDate).toLocaleDateString()}
+                          </small>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-5">
+                <i className="bi bi-receipt display-4 text-muted mb-3"></i>
+                <p className="text-muted">No bills found</p>
+              </div>
+            )}
+          </div>
+        </section>
 
-      </div>
+        {/* Outages & Programs Summary */}
+        {(dashboardData.outages.length > 0 || dashboardData.programs.length > 0) && (
+          <section className={styles.summarySection}>
+            <div className="container">
+              <div className="row g-4">
+                {dashboardData.outages.length > 0 && (
+                  <div className="col-lg-6">
+                    <div className="card h-100">
+                      <div className="card-body">
+                        <h5 className="card-title d-flex align-items-center">
+                          <i className="bi bi-exclamation-triangle text-warning me-2"></i>
+                          Current Outages
+                        </h5>
+                        <div className="list-group list-group-flush">
+                          {dashboardData.outages.slice(0, 3).map((outage, index) => (
+                            <div key={index} className="list-group-item">
+                              <div className="d-flex justify-content-between">
+                                <span>{outage.area}</span>
+                                <span className="badge bg-warning">
+                                  {outage.status}
+                                </span>
+                              </div>
+                              <small className="text-muted">
+                                Reported: {new Date(outage.reportedAt).toLocaleDateString()}
+                              </small>
+                            </div>
+                          ))}
+                        </div>
+                        {dashboardData.outages.length > 3 && (
+                          <button 
+                            className="btn btn-link mt-3 p-0"
+                            onClick={handleNavigateToOutages}
+                          >
+                            View all {dashboardData.outages.length} outages
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {dashboardData.programs.length > 0 && (
+                  <div className="col-lg-6">
+                    <div className="card h-100">
+                      <div className="card-body">
+                        <h5 className="card-title d-flex align-items-center">
+                          <i className="bi bi-gift text-success me-2"></i>
+                          Available Programs
+                        </h5>
+                        <div className="list-group list-group-flush">
+                          {dashboardData.programs.slice(0, 3).map((program, index) => (
+                            <div key={index} className="list-group-item">
+                              <div className="d-flex justify-content-between align-items-center">
+                                <div>
+                                  <h6 className="mb-1">{program.name}</h6>
+                                  <small className="text-muted">{program.type}</small>
+                                </div>
+                                <span className="badge bg-success">Available</span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                        {dashboardData.programs.length > 3 && (
+                          <button 
+                            className="btn btn-link mt-3 p-0"
+                            onClick={handleNavigateToPrograms}
+                          >
+                            View all {dashboardData.programs.length} programs
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </section>
+        )}
+      </main>
+
+      {/* Payment Modal */}
+      {showPaymentForm && (
+        <div className="modal show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
+          <div className="modal-dialog modal-dialog-centered">
+            <div className="modal-content">
+              <div className="modal-header">
+                <h5 className="modal-title">
+                  {currentBill.id ? `Pay Bill #${currentBill.billNumber}` : 'Fund Your Wallet'}
+                </h5>
+                <button 
+                  type="button" 
+                  className="btn-close" 
+                  onClick={closePaymentForm}
+                  aria-label="Close"
+                ></button>
+              </div>
+              <div className="modal-body">
+                <PaymentForm 
+                  bill={currentBill.id ? currentBill : null}
+                  onClose={closePaymentForm}
+                  onSubmit={handlePay}
+                  isWalletTopUp={!currentBill.id}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       <Footer />
+
+      <style jsx global>{`
+        /* Fix for navbar overlap */
+        body {
+          padding-top: 76px !important; /* Height of your navbar */
+        }
+        
+        .skip-to-main {
+          position: absolute;
+          top: -40px;
+          left: 10px;
+          background: #0d6efd;
+          color: white;
+          padding: 8px 16px;
+          border-radius: 4px;
+          text-decoration: none;
+          z-index: 1000;
+          transition: top 0.3s;
+        }
+        
+        .skip-to-main:focus {
+          top: 10px;
+        }
+        
+        /* Ensure modal is above navbar */
+        .modal {
+          z-index: 1060;
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+          body {
+            padding-top: 70px !important;
+          }
+          
+          .modal-dialog {
+            margin: 1rem;
+          }
+        }
+        
+        @media (max-width: 576px) {
+          body {
+            padding-top: 65px !important;
+          }
+          
+          .welcome-section h1 {
+            font-size: 1.5rem;
+          }
+          
+          .stat-card h3 {
+            font-size: 1.25rem;
+          }
+        }
+      `}</style>
     </>
   );
 }

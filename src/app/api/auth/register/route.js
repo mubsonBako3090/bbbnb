@@ -47,15 +47,25 @@ export const POST = withDatabase(async (request) => {
     }
 
     // Super admin restriction
-    if (role === 'superAdmin') {
-      const existingSuperAdmin = await User.findOne({ role: 'superAdmin' });
-      if (existingSuperAdmin) {
-        return NextResponse.json(
-          { success: false, error: 'A Super Admin already exists' },
-          { status: 403 }
-        );
-      }
-    }
+    // BEFORE (vulnerable)
+if (role === 'superAdmin') {
+  const existingSuperAdmin = await User.findOne({ role: 'superAdmin' });
+  if (existingSuperAdmin) {
+    return NextResponse.json(
+      { success: false, error: 'A Super Admin already exists' },
+      { status: 403 }
+    );
+  }
+}
+
+// AFTER (secure)
+if (role === 'superAdmin') {
+  // Never allow public registration of super admin
+  return NextResponse.json(
+    { success: false, error: 'Invalid role selection' },
+    { status: 403 }
+  );
+}
 
     // Create user
     const user = await User.create({

@@ -1,11 +1,16 @@
-import connectDB from '@/lib/database';
-
+// app/api/health/route.js
 export async function GET() {
   try {
     await connectDB();
-    return new Response(JSON.stringify({ ok: true, db: 'connected' }), { status: 200 });
+    return Response.json({ 
+      status: 'healthy', 
+      timestamp: new Date().toISOString(),
+      uptime: process.uptime()
+    });
   } catch (error) {
-    console.error('Health check DB error:', error);
-    return new Response(JSON.stringify({ ok: false, db: 'disconnected', error: String(error) }), { status: 500 });
+    return Response.json({ 
+      status: 'unhealthy', 
+      error: error.message 
+    }, { status: 500 });
   }
 }
