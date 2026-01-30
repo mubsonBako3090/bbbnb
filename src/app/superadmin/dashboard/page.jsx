@@ -6,6 +6,9 @@ import { useAuth } from '@/contexts/AuthContext';
 import Header from '@/components/ui/Header';
 import Footer from '@/components/Footer';
 import styles from '@/styles/SuperAdminDashboard.module.css';
+import Sidebar from '@/components/admin/Sidebar';
+import layoutStyles from '@/styles/AdminLayout.module.css';
+
 
 export default function SuperAdminDashboard() {
   const router = useRouter();
@@ -261,11 +264,14 @@ export default function SuperAdminDashboard() {
 
   return (
     <>
-      <Header />
-      <main className={styles.container}>
-        <h1 className={styles.pageTitle}>Super Admin Dashboard</h1>
-        
-        {/* Tab Navigation */}
+      div className={layoutStyles.adminLayout}>
+  <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
+
+  <main className={layoutStyles.mainContent}>
+    <h1 className={styles.pageTitle}>Super Admin Dashboard</h1>
+      
+    {/* Tab Navigation */}
+    
         <div className={styles.tabs}>
           <button 
             className={`${styles.tab} ${activeTab === 'overview' ? styles.activeTab : ''}`}
