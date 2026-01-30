@@ -1,0 +1,82 @@
+.adminLayout {
+  display: flex;
+  flex: 1;
+  min-height: calc(100vh - 120px); /* header + footer */
+}
+
+/* ===== Sidebar ===== */
+
+.sidebar {
+  width: 240px;
+  background: #0f172a;
+  color: #e5e7eb;
+  padding: 1.5rem 1rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.logo {
+  font-size: 1.2rem;
+  font-weight: bold;
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.nav {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.nav button {
+  background: none;
+  border: none;
+  color: #cbd5f5;
+  padding: 0.75rem 1rem;
+  border-radius: 6px;
+  text-align: left;
+  cursor: pointer;
+  font-size: 0.95rem;
+}
+
+.nav button:hover {
+  background: #1e293b;
+  color: #fff;
+}
+
+.active {
+  background: #2563eb;
+  color: white !important;
+}
+
+/* ===== Main Content ===== */
+
+.mainContent {
+  flex: 1;
+  padding: 2rem;
+  background: #f9fafb;
+  overflow-x: hidden;
+}
+
+/* ===== Mobile ===== */
+
+@media (max-width: 768px) {
+  .sidebar {
+    width: 100%;
+    flex-direction: row;
+    overflow-x: auto;
+  }
+
+  .nav {
+    flex-direction: row;
+    gap: 0.25rem;
+  }
+
+  .nav button {
+    white-space: nowrap;
+  }
+
+  .adminLayout {
+    flex-direction: column;
+  }
+  }
