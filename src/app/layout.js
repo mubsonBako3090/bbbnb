@@ -21,15 +21,17 @@ export default function RootLayout({ children }) {
         <title>PowerGrid Utilities - Reliable Energy Solutions</title>
         <meta name="description" content="Your trusted electric utility provider" />
       </head>
-      <body>
-        <AuthProvider>
-          <AuthModalProvider>
-            <NotificationProvider>
-              {children}      {/* Header/Navbar inside this can use useAuthModal */}
-            </NotificationProvider>
-          </AuthModalProvider>
-        </AuthProvider>
-      </body>
+<body>
+  <AuthProvider>
+    <AuthModalProvider>
+      <NotificationProvider>
+        <div className="appShell">
+          {children}
+        </div>
+      </NotificationProvider>
+    </AuthModalProvider>
+  </AuthProvider>
+</body>
     </html>
   );
 }
