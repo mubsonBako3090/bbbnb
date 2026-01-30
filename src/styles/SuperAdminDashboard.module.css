@@ -3,6 +3,9 @@
   padding: 2rem;
   max-width: 1400px;
   margin: 0 auto;
+  flex: 1;               /* 🔥 THIS is the footer fix */
+  display: flex;
+  flex-direction: column;
 }
 
 .pageTitle {
