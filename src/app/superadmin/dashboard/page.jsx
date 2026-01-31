@@ -9,7 +9,6 @@ import styles from '@/styles/SuperAdminDashboard.module.css';
 import Sidebar from '@/components/admin/Sidebar';
 import layoutStyles from '@/styles/AdminLayout.module.css';
 
-
 export default function SuperAdminDashboard() {
   const router = useRouter();
   const { user, loading } = useAuth();
@@ -261,19 +260,17 @@ export default function SuperAdminDashboard() {
   };
 
   if (loading || fetching) {
-  return <p className="text-center mt-5">Loading...</p>;
-}
+    return <p className="text-center mt-5">Loading...</p>;
+  }
 
-return (
-<>
-  <div className={layoutStyles.adminLayout}>
-  <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
+  return (
+    <div className={layoutStyles.adminLayout}>
+      <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
 
-  <main className={layoutStyles.mainContent}>
-    <h1 className={styles.pageTitle}>Super Admin Dashboard</h1>
-      
-    {/* Tab Navigation */}
-    
+      <main className={layoutStyles.mainContent}>
+        <h1 className={styles.pageTitle}>Super Admin Dashboard</h1>
+        
+        {/* Tab Navigation */}
         <div className={styles.tabs}>
           <button 
             className={`${styles.tab} ${activeTab === 'overview' ? styles.activeTab : ''}`}
@@ -565,7 +562,7 @@ return (
                   <option>Meter Approvals</option>
                   <option>System Changes</option>
                 </select>
-                <input type="date" />
+                  <input type="date" />
                 <button className={styles.btnSecondary}>Export Logs</button>
               </div>
             </div>
@@ -747,6 +744,6 @@ return (
         )}
       </main>
       <Footer />
-  </>
+    </div>
   );
-
+                      }
