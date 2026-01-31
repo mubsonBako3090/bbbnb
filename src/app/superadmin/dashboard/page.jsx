@@ -260,8 +260,11 @@ export default function SuperAdminDashboard() {
     }
   };
 
-  if (loading || fetching) return <p className="text-center mt-5">Loading...</p>
-    return (
+  if (loading || fetching) {
+  return <p className="text-center mt-5">Loading...</p>;
+}
+
+return (
     <>
       div className={layoutStyles.adminLayout}>
   <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
