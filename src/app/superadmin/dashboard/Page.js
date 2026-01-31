@@ -542,16 +542,6 @@
 ‎                      <small className="d-block">#{currentBill.billNumber}</small>
 ‎                    )}
 ‎                  </div>
-‎                  <div className={styles.statArrow}>
-‎                    <i className="bi bi-chevron-right"></i>
-‎                  </div>
-‎                </div>
-‎              </div>
-‎
-‎              {/* Current Usage */}
-‎              <div className="col-xl-3 col-lg-4 col-md-6 col-sm-6">
-‎                <div
-</div>
                   <div className={styles.statArrow}>
                     <i className="bi bi-chevron-right"></i>
                   </div>
@@ -949,5 +939,276 @@
                         <i className="bi bi-chevron-right"></i>
                       </button>
                       <button 
-                        classNa
+                        className="btn btn-outline-primary d-flex align-items-center justify-content-between"
+                        onClick={handleNavigateToOutages}
+                      >
+                        <span>Outage Reports</span>
+                        <i className="bi bi-chevron-right"></i>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </section>
+            </div>
+          </div>
+        </div>
+
+        {/* PAYMENT SECTION (YOUR ORIGINAL CODE RESTORED) */}
+        <section className="section-padding">
+          <div className="container">
+            <h2 className="section-title mb-4">Make a Payment</h2>
+            <button className="btn btn-primary mb-3" onClick={openPaymentForm}>
+              <i className="bi bi-credit-card me-2"></i> Pay Now
+            </button>
+            {showPaymentForm && (
+              <PaymentForm 
+                bill={currentBill} 
+                onClose={closePaymentForm} 
+                onSubmit={handlePay}
+              />
+            )}
+            <BillList bills={bills} />
+          </div>
+        </section>
+
+        {/* Recent Bills Section */}
+        <section className={styles.recentBillsSection}>
+          <div className="container">
+            <div className="d-flex justify-content-between align-items-center mb-4">
+              <h2 className={styles.sectionTitle}>Recent Bills</h2>
+              <button 
+                className="btn btn-link text-decoration-none"
+                onClick={handleNavigateToBills}
+              >
+                View All <i className="bi bi-arrow-right"></i>
+              </button>
+            </div>
+            
+            {bills.length > 0 ? (
+              <div className="row g-3">
+                {bills.slice(0, 4).map((bill) => (
+                  <div key={bill._id} className="col-lg-3 col-md-6">
+                    <div 
+                      className={`card ${styles.billCard} ${styles.clickableCard}`}
+                      onClick={() => router.push(`/bills/${bill._id}`)}
+                      role="button"
+                      tabIndex={0}
+                    >
+                      <div className="card-body">
+                        <div className="d-flex justify-content-between align-items-start mb-3">
+                          <div>
+                            <h6 className="card-subtitle text-muted">Bill #{bill.billNumber}</h6>
+                            <small className="text-muted">
+                              {new Date(bill.billingPeriod?.start).toLocaleDateString()} -{' '}
+                              {new Date(bill.billingPeriod?.end).toLocaleDateString()}
+                            </small>
+                          </div>
+                          <span className={`badge ${
+                            bill.status === 'paid' ? 'bg-success' : 
+                            bill.status === 'overdue' ? 'bg-danger' : 
+                            'bg-warning'
+                          }`}>
+                            {bill.status}
+                          </span>
+                        </div>
+                        
+                        <div className="mb-3">
+                          <div className="d-flex justify-content-between mb-1">
+                            <span>Total Amount:</span>
+                            <span className="fw-bold">₦{bill.totalAmount?.toLocaleString()}</span>
+                          </div>
+                          <div className="d-flex justify-content-between">
+                            <span>Amount Due:</span>
+                            <span className={`${bill.amountDue > 0 ? 'text-danger fw-bold' : 'text-success'}`}>
+                              ₦{bill.amountDue?.toLocaleString()}
+                            </span>
+                          </div>
+                        </div>
+                        
+                        <div className="text-center">
+                          <small className="text-muted">
+                            Due: {new Date(bill.dueDate).toLocaleDateString()}
+                          </small>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-5">
+                <i className="bi bi-receipt display-4 text-muted mb-3"></i>
+                <p className="text-muted">No bills found</p>
+              </div>
+            )}
+          </div>
+        </section>
+
+        {/* Outages & Programs Summary */}
+        {(dashboardData.outages.length > 0 || dashboardData.programs.length > 0) && (
+          <section className={styles.summarySection}>
+            <div className="container">
+              <div className="row g-4">
+                {dashboardData.outages.length > 0 && (
+                  <div className="col-lg-6">
+                    <div className="card h-100">
+                      <div className="card-body">
+                        <h5 className="card-title d-flex align-items-center">
+                          <i className="bi bi-exclamation-triangle text-warning me-2"></i>
+                          Current Outages
+                        </h5>
+                        <div className="list-group list-group-flush">
+                          {dashboardData.outages.slice(0, 3).map((outage, index) => (
+                            <div key={index} className="list-group-item">
+                              <div className="d-flex justify-content-between">
+                                <span>{outage.area}</span>
+                                <span className="badge bg-warning">
+                                  {outage.status}
+                                </span>
+                              </div>
+                              <small className="text-muted">
+                                Reported: {new Date(outage.reportedAt).toLocaleDateString()}
+                              </small>
+                            </div>
+                          ))}
+                        </div>
+                        {dashboardData.outages.length > 3 && (
+                          <button 
+                            className="btn btn-link mt-3 p-0"
+                            onClick={handleNavigateToOutages}
+                          >
+                            View all {dashboardData.outages.length} outages
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {dashboardData.programs.length > 0 && (
+                  <div className="col-lg-6">
+                    <div className="card h-100">
+                      <div className="card-body">
+                        <h5 className="card-title d-flex align-items-center">
+                          <i className="bi bi-gift text-success me-2"></i>
+                          Available Programs
+                        </h5>
+                        <div className="list-group list-group-flush">
+                          {dashboardData.programs.slice(0, 3).map((program, index) => (
+                            <div key={index} className="list-group-item">
+                              <div className="d-flex justify-content-between align-items-center">
+                                <div>
+                                  <h6 className="mb-1">{program.name}</h6>
+                                  <small className="text-muted">{program.type}</small>
+                                </div>
+                                <span className="badge bg-success">Available</span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                        {dashboardData.programs.length > 3 && (
+                          <button 
+                            className="btn btn-link mt-3 p-0"
+                            onClick={handleNavigateToPrograms}
+                          >
+                            View all {dashboardData.programs.length} programs
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </section>
+        )}
+      </main>
+
+      {/* Payment Modal */}
+      {showPaymentForm && (
+        <div className="modal show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
+          <div className="modal-dialog modal-dialog-centered">
+            <div className="modal-content">
+              <div className="modal-header">
+                <h5 className="modal-title">
+                  {currentBill.id ? `Pay Bill #${currentBill.billNumber}` : 'Fund Your Wallet'}
+                </h5>
+                <button 
+                  type="button" 
+                  className="btn-close" 
+                  onClick={closePaymentForm}
+                  aria-label="Close"
+                ></button>
+              </div>
+              <div className="modal-body">
+                <PaymentForm 
+                  bill={currentBill.id ? currentBill : null}
+                  onClose={closePaymentForm}
+                  onSubmit={handlePay}
+                  isWalletTopUp={!currentBill.id}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <Footer />
+
+      <style jsx global>{`
+        /* Fix for navbar overlap */
+        body {
+          padding-top: 76px !important; /* Height of your navbar */
+        }
+        
+        .skip-to-main {
+          position: absolute;
+          top: -40px;
+          left: 10px;
+          background: #0d6efd;
+          color: white;
+          padding: 8px 16px;
+          border-radius: 4px;
+          text-decoration: none;
+          z-index: 1000;
+          transition: top 0.3s;
+        }
+        
+        .skip-to-main:focus {
+          top: 10px;
+        }
+        
+        /* Ensure modal is above navbar */
+        .modal {
+          z-index: 1060;
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+          body {
+            padding-top: 70px !important;
+          }
+          
+          .modal-dialog {
+            margin: 1rem;
+          }
+        }
+        
+        @media (max-width: 576px) {
+          body {
+            padding-top: 65px !important;
+          }
+          
+          .welcome-section h1 {
+            font-size: 1.5rem;
+          }
+          
+          .stat-card h3 {
+            font-size: 1.25rem;
+          }
+        }
+      `}</style>
+    </>
+  );
+                            }
 ‎ 
