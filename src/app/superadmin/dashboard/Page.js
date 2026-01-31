@@ -550,5 +550,404 @@
 ‎
 ‎              {/* Current Usage */}
 ‎              <div className="col-xl-3 col-lg-4 col-md-6 col-sm-6">
-‎                <div 
+‎                <div
+</div>
+                  <div className={styles.statArrow}>
+                    <i className="bi bi-chevron-right"></i>
+                  </div>
+                </div>
+              </div>
+
+              {/* Current Usage */}
+              <div className="col-xl-3 col-lg-4 col-md-6 col-sm-6">
+                <div 
+                  className={`${styles.statCard} ${styles.clickableCard}`}
+                  onClick={handleNavigateToUsage}
+                  role="button"
+                  tabIndex={0}
+                >
+                  <div className={styles.statIconContainer}>
+                    <i className="bi bi-lightning-charge"></i>
+                  </div>
+                  <div className={styles.statContent}>
+                    <h3>{currentUsage.toLocaleString()} kWh</h3>
+                    <p>Current Usage</p>
+                    <small>Latest reading</small>
+                  </div>
+                  <div className={styles.statArrow}>
+                    <i className="bi bi-chevron-right"></i>
+                  </div>
+                </div>
+              </div>
+
+              {/* Bill Status */}
+              <div className="col-xl-3 col-lg-4 col-md-6 col-sm-6">
+                <div 
+                  className={`${styles.statCard} ${styles.clickableCard}`}
+                  onClick={handleNavigateToBills}
+                  role="button"
+                  tabIndex={0}
+                >
+                  <div className={styles.statIconContainer}>
+                    <i className={`bi ${
+                      currentBill.status === 'paid' ? 'bi-check-circle text-success' :
+                      currentBill.status === 'overdue' ? 'bi-exclamation-circle text-danger' :
+                      currentBill.status === 'partially_paid' ? 'bi-currency-exchange text-warning' :
+                      currentBill.status ? 'bi-clock text-info' : 'bi-file-x text-secondary'
+                    }`}></i>
+                  </div>
+                  <div className={styles.statContent}>
+                    <h3>
+                      {currentBill.status ? 
+                        currentBill.status.charAt(0).toUpperCase() + 
+                        currentBill.status.slice(1).replace('_', ' ') : 
+                        'No Bill'
+                      }
+                    </h3>
+                    <p>Bill Status</p>
+                    <small>Current bill status</small>
+                  </div>
+                  <div className={styles.statArrow}>
+                    <i className="bi bi-chevron-right"></i>
+                  </div>
+                </div>
+              </div>
+
+              {/* Available Programs */}
+              <div className="col-xl-3 col-lg-4 col-md-6 col-sm-6">
+                <div 
+                  className={`${styles.statCard} ${styles.clickableCard}`}
+                  onClick={handleNavigateToPrograms}
+                  role="button"
+                  tabIndex={0}
+                >
+                  <div className={styles.statIconContainer}>
+                    <i className="bi bi-gift"></i>
+                  </div>
+                  <div className={styles.statContent}>
+                    <h3>{dashboardData.programs.length}</h3>
+                    <p>Available Programs</p>
+                    <small>Energy programs</small>
+                  </div>
+                  <div className={styles.statArrow}>
+                    <i className="bi bi-chevron-right"></i>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Main Content Grid - Responsive */}
+        <div className="container-fluid">
+          <div className="row g-4">
+            {/* Left Column - Meter Reading & Usage Chart */}
+            <div className="col-lg-8">
+              {/* Meter Reading Form */}
+              {meterStatus.hasMeter && meterStatus.meterNumber && (
+                <section className={styles.meterReadingSection} ref={meterReadingRef}>
+                  <div className="card h-100">
+                    <div className="card-body">
+                      <h5 className="card-title d-flex align-items-center">
+                        <i className="bi bi-pencil-square me-2"></i>
+                        Submit Meter Reading
+                      </h5>
+                      
+                      <div className="row g-3 align-items-end">
+                        <div className="col-md-6">
+                          <label htmlFor="meterReading" className="form-label">
+                            Current Reading (kWh)
+                          </label>
+                          <div className="input-group">
+                            <input
+                              type="number"
+                              id="meterReading"
+                              className="form-control"
+                              placeholder="Enter current meter reading"
+                              value={newReading}
+                              onChange={(e) => setNewReading(e.target.value)}
+                              min="0"
+                              step="0.01"
+                              disabled={isSubmittingReading}
+                            />
+                            <span className="input-group-text">kWh</span>
+                          </div>
+                          <div className="form-text">
+                            Enter the exact number from your meter display
+                          </div>
+                        </div>
+                        
+                        <div className="col-md-6">
+                          <div className="d-grid gap-2">
+                            <button
+                              className="btn btn-success"
+                              onClick={handleSubmitReading}
+                              disabled={!newReading || parseFloat(newReading) <= 0 || isSubmittingReading}
+                            >
+                              {isSubmittingReading ? (
+                                <>
+                                  <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                                  Submitting...
+                                </>
+                              ) : (
+                                <>
+                                  <i className="bi bi-check-circle me-2"></i>
+                                  Submit Reading
+                                </>
+                              )}
+                            </button>
+                            <button
+                              className="btn btn-outline-secondary"
+                              onClick={() => {
+                                // Pre-fill with last reading + estimated usage
+                                if (meterReadings.length > 0) {
+                                  const latest = meterReadings[0];
+                                  const lastReading = latest.consumption || latest.usage;
+                                  const estimatedUsage = 50; // Default estimate
+                                  setNewReading((lastReading + estimatedUsage).toString());
+                                }
+                              }}
+                              disabled={meterReadings.length === 0 || isSubmittingReading}
+                            >
+                              <i className="bi bi-calculator me-2"></i>
+                              Estimate Next Reading
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {meterReadings.length > 0 && (
+                        <div className="mt-4">
+                          <div className="d-flex justify-content-between align-items-center mb-2">
+                            <h6>Latest Readings</h6>
+                            <div className="d-flex gap-2">
+                              <button 
+                                className="btn btn-sm btn-outline-secondary"
+                                onClick={() => {
+                                  const lastReading = meterReadings[0];
+                                  setNewReading((lastReading.consumption || lastReading.usage).toString());
+                                }}
+                              >
+                                <i className="bi bi-arrow-clockwise me-1"></i>
+                                Use Last Reading
+                              </button>
+                              <button 
+                                className="btn btn-sm btn-outline-primary"
+                                onClick={handleNavigateToUsage}
+                              >
+                                View All
+                              </button>
+                            </div>
+                          </div>
+                          <div className="list-group list-group-flush">
+                            {meterReadings.slice(0, 5).map((reading, index) => (
+                              <div key={reading.readingId || index} className="list-group-item">
+                                <div className="d-flex justify-content-between align-items-center">
+                                  <div>
+                                    <span className="fw-medium">
+                                      {new Date(reading.date || reading.readingDate).toLocaleDateString('en-US', {
+                                        weekday: 'short',
+                                        month: 'short',
+                                        day: 'numeric'
+                                      })}
+                                    </span>
+                                    <small className="text-muted ms-2">
+                                      {new Date(reading.date || reading.readingDate).toLocaleTimeString('en-US', {
+                                        hour: '2-digit',
+                                        minute: '2-digit'
+                                      })}
+                                    </small>
+                                  </div>
+                                  <div>
+                                    <span className="fw-bold fs-6">
+                                      {reading.usage || reading.consumption} kWh
+                                    </span>
+                                    {index > 0 && meterReadings[index - 1] && (
+                                      <small className={`ms-2 ${(reading.consumption || reading.usage) > (meterReadings[index - 1].consumption || meterReadings[index - 1].usage) ? 'text-success' : 'text-danger'}`}>
+                                        <i className={`bi ${(reading.consumption || reading.usage) > (meterReadings[index - 1].consumption || meterReadings[index - 1].usage) ? 'bi-arrow-up' : 'bi-arrow-down'}`}></i>
+                                        {Math.abs((reading.consumption || reading.usage) - (meterReadings[index - 1].consumption || meterReadings[index - 1].usage))} kWh
+                                      </small>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      
+                      {/* Quick Tips */}
+                      <div className="alert alert-info mt-3">
+                        <h6 className="alert-heading mb-2">
+                          <i className="bi bi-lightbulb me-2"></i>
+                          Reading Tips
+                        </h6>
+                        <ul className="mb-0 ps-3">
+                          <li>Read the numbers from left to right on your meter display</li>
+                          <li>Ignore any red numbers or numbers after a decimal point</li>
+                          <li>Submit your reading on the same day each month for consistency</li>
+                          <li>If your meter has multiple displays, use the one labeled "kWh"</li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                </section>
+              )}
+
+              {/* Usage Chart */}
+              {meterReadings.length > 1 && (
+                <section className={styles.usageChartSection}>
+                  <div className="card h-100">
+                    <div className="card-body">
+                      <div className="d-flex justify-content-between align-items-center mb-4">
+                        <h5 className="card-title m-0">Energy Usage Trend</h5>
+                        <div className="dropdown">
+                          <button 
+                            className="btn btn-sm btn-outline-secondary dropdown-toggle"
+                            type="button"
+                            data-bs-toggle="dropdown"
+                          >
+                            Last 30 days
+                          </button>
+                          <ul className="dropdown-menu">
+                            <li><button className="dropdown-item">Last 7 days</button></li>
+                            <li><button className="dropdown-item">Last 30 days</button></li>
+                            <li><button className="dropdown-item">Last 90 days</button></li>
+                            <li><button className="dropdown-item">Last 12 months</button></li>
+                          </ul>
+                        </div>
+                      </div>
+                      <UsageChart readings={meterReadings} />
+                      <div className="mt-3 text-center">
+                        <button 
+                          className="btn btn-outline-primary me-2"
+                          onClick={handleNavigateToUsage}
+                        >
+                          <i className="bi bi-graph-up me-2"></i>
+                          View Detailed Usage Analysis
+                        </button>
+                        <button 
+                          className="btn btn-outline-success"
+                          onClick={handleNavigateToMeterReadings}
+                        >
+                          <i className="bi bi-pencil-square me-2"></i>
+                          Submit New Reading
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </section>
+              )}
+            </div>
+
+            {/* Right Column - Payment & Quick Actions */}
+            <div className="col-lg-4">
+              {/* Payment Section */}
+              <section className={styles.paymentSection}>
+                <div className="card h-100">
+                  <div className="card-body">
+                    <h5 className="card-title d-flex align-items-center">
+                      <i className="bi bi-credit-card me-2"></i>
+                      Quick Payment
+                    </h5>
+                    
+                    {currentBill.id ? (
+                      <>
+                        <div className={styles.billSummary}>
+                          <div className="d-flex justify-content-between mb-2">
+                            <span>Amount Due:</span>
+                            <span className="fw-bold fs-5 text-primary">
+                              ₦{currentBill.amountDue.toLocaleString()}
+                            </span>
+                          </div>
+                          <div className="d-flex justify-content-between mb-2">
+                            <span>Due Date:</span>
+                            <span className={currentBill.dueDate && currentBill.dueDate < new Date() ? 'text-danger fw-bold' : ''}>
+                              {currentBill.dueDate ? currentBill.dueDate.toLocaleDateString() : 'N/A'}
+                            </span>
+                          </div>
+                          <div className="d-flex justify-content-between mb-3">
+                            <span>Status:</span>
+                            <span className={`badge ${
+                              currentBill.status === 'paid' ? 'bg-success' :
+                              currentBill.status === 'overdue' ? 'bg-danger' :
+                              currentBill.status === 'partially_paid' ? 'bg-warning' :
+                              'bg-info'
+                            }`}>
+                              {currentBill.status?.replace('_', ' ') || 'Pending'}
+                            </span>
+                          </div>
+                        </div>
+                        
+                        <div className="d-grid gap-2">
+                          <button 
+                            className="btn btn-primary btn-lg"
+                            onClick={openPaymentForm}
+                          >
+                            <i className="bi bi-lightning-charge me-2"></i>
+                            Pay Now
+                          </button>
+                          <button 
+                            className="btn btn-outline-secondary"
+                            onClick={handleNavigateToBills}
+                          >
+                            View All Bills
+                          </button>
+                        </div>
+                      </>
+                    ) : (
+                      <div className="text-center py-4">
+                        <i className="bi bi-receipt display-4 text-muted mb-3"></i>
+                        <p className="text-muted">No bills at the moment</p>
+                        <button 
+                          className="btn btn-outline-primary"
+                          onClick={openPaymentForm}
+                        >
+                          <i className="bi bi-wallet2 me-2"></i>
+                          Fund Wallet
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </section>
+
+              {/* Quick Actions */}
+              <section className={styles.quickActionsSection}>
+                <div className="card h-100">
+                  <div className="card-body">
+                    <h5 className="card-title">Quick Actions</h5>
+                    <div className="d-grid gap-2">
+                      <button 
+                        className="btn btn-outline-primary d-flex align-items-center justify-content-between"
+                        onClick={handleNavigateToBills}
+                      >
+                        <span>View Bills & History</span>
+                        <i className="bi bi-chevron-right"></i>
+                      </button>
+                      <button 
+                        className="btn btn-outline-primary d-flex align-items-center justify-content-between"
+                        onClick={handleNavigateToUsage}
+                      >
+                        <span>Usage Details</span>
+                        <i className="bi bi-chevron-right"></i>
+                      </button>
+                      {meterStatus.hasMeter && (
+                        <button 
+                          className="btn btn-outline-primary d-flex align-items-center justify-content-between"
+                          onClick={handleNavigateToMeterReadings}
+                        >
+                          <span>Submit Meter Reading</span>
+                          <i className="bi bi-chevron-right"></i>
+                        </button>
+                      )}
+                      <button 
+                        className="btn btn-outline-primary d-flex align-items-center justify-content-between"
+                        onClick={handleNavigateToPrograms}
+                      >
+                        <span>Energy Programs</span>
+                        <i className="bi bi-chevron-right"></i>
+                      </button>
+                      <button 
+                        classNa
 ‎ 
