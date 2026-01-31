@@ -265,7 +265,7 @@ export default function SuperAdminDashboard() {
 }
 
 return (
-<>
+
   <div className={layoutStyles.adminLayout}>
   <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
 
@@ -747,6 +747,5 @@ return (
         )}
       </main>
       <Footer />
-  </>
   );
-
+    }
